@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document Library</title>
+  <base href="/run/document-library/" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           var(--hub-bg, #f9fafb);
+      --card:         var(--hub-surface, #ffffff);
+      --border:       var(--hub-border, #e5e7eb);
+      --text:         var(--hub-text, #111827);
+      --muted:        var(--hub-text-muted, #6b7280);
+      --accent:       var(--hub-primary, #111827);
+      --accent-fg:    var(--hub-primary-fg, #ffffff);
+      --accent-hover: var(--hub-primary-hover, #374151);
+      --radius:       var(--hub-radius, 0.5rem);
+      --shadow:       0 1px 3px rgba(0,0,0,.07);
+    }
+
+    body {
+      font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; font-size: var(--hub-font-size, 15px); line-height: 1.5;
+    }
+    .app { max-width: 680px; margin: 0 auto; padding: 16px; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; padding: 14px 18px;
+      background: var(--accent); border-radius: var(--radius); color: white;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1px; }
+    header .sub { font-size: 0.75rem; opacity: .7; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px;
+      font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; transition: opacity .15s;
+    }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .btn-primary  { background: var(--accent); color: var(--accent-fg); }
+    .btn-primary:hover:not(:disabled) { opacity: .88; }
+    .btn-ghost    { background: transparent; color: var(--muted); border: 1.5px solid var(--border); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--text); color: var(--text); }
+    .btn-danger   { background: #dc2626; color: white; }
+    .btn-danger:hover:not(:disabled) { opacity: .88; }
+    .btn-icon     { background: rgba(255,255,255,.2); color: white; border: none; font-size: 1rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+    .btn-icon:hover { background: rgba(255,255,255,.3); }
+    .btn-sm       { padding: 5px 12px; font-size: 0.8rem; }
+
+    .tabs {
+      display: flex; gap: 4px; margin-bottom: 16px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 4px;
+    }
+    .tab {
+      flex: 1; padding: 7px 6px; border-radius: calc(var(--radius) - 2px);
+      border: none; background: transparent;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--muted); transition: all .15s;
+      white-space: nowrap;
+    }
+    .tab.active { background: var(--accent); color: var(--accent-fg); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    .card {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      box-shadow: var(--shadow); margin-bottom: 12px;
+    }
+
+    .section-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 10px; }
+    .section-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 12px;
+      font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+    }
+    .badge-blue   { background: #dbeafe; color: #1e40af; }
+    .badge-gray   { background: #f3f4f6; color: #4b5563; }
+    .badge-green  { background: #dcfce7; color: #166534; }
+
+    .doc-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: opacity .15s;
+    }
+    .doc-row:last-child { border-bottom: none; }
+    .doc-row:hover { opacity: .75; }
+    .doc-icon  { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+    .doc-info  { flex: 1; min-width: 0; }
+    .doc-title { font-weight: 700; font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-meta  { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .doc-chevron { color: var(--muted); flex-shrink: 0; }
+
+    .back-btn { background: none; border: none; cursor: pointer; font-size: 0.82rem; color: var(--muted); padding: 0; margin-bottom: 14px; display: inline-flex; align-items: center; gap: 4px; }
+    .back-btn:hover { color: var(--text); }
+
+    .detail-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 6px; }
+    .detail-icon   { font-size: 2.4rem; line-height: 1; flex-shrink: 0; }
+    .detail-title  { font-size: 1.15rem; font-weight: 700; }
+    .detail-meta   { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .detail-desc   { font-size: 0.88rem; color: var(--muted); margin-top: 8px; }
+    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+
+    .version-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .version-row:last-child { border-bottom: none; }
+    .version-badge { flex-shrink: 0; }
+    .version-info  { flex: 1; min-width: 0; }
+    .version-name  { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .version-meta  { font-size: 0.76rem; color: var(--muted); margin-top: 1px; }
+    .version-note  { font-size: 0.78rem; color: var(--muted); margin-top: 3px; font-style: italic; }
+    .version-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; font-size: 0.9rem; font-family: inherit; outline: none; background: white; color: var(--text);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row > * { flex: 1; min-width: 0; }
+    .form-hint { font-size: 0.76rem; color: var(--muted); margin-top: 5px; }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 100; }
+    @media (min-width: 480px) { .modal-backdrop { align-items: center; padding: 20px; } }
+    .modal { background: white; border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: 520px; padding: 22px; max-height: 92vh; overflow-y: auto; }
+    @media (min-width: 480px) { .modal { border-radius: var(--radius); } }
+    .modal h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+    .modal-actions .btn { flex: 1; justify-content: center; min-width: 90px; }
+    .error-msg { color: #dc2626; font-size: 0.82rem; margin-top: 6px; min-height: 18px; }
+
+    .file-pick { border: 1.5px dashed var(--border); border-radius: 8px; padding: 14px; text-align: center; cursor: pointer; font-size: 0.85rem; color: var(--muted); transition: border-color .15s; }
+    .file-pick:hover { border-color: var(--accent); color: var(--text); }
+    .file-pick.has-file { border-style: solid; color: var(--text); }
+    .upload-progress { margin-top: 10px; }
+    .upload-progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .upload-progress-bar { height: 100%; background: var(--accent); width: 0; transition: width .15s; }
+    .upload-progress-label { font-size: 0.76rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── Preview modal ── */
+    .preview-modal { max-width: 90vw; max-height: 90vh; width: 860px; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+    .preview-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .preview-header h3 { flex: 1; font-size: 0.95rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .preview-body { flex: 1; overflow: auto; min-height: 300px; background: #1e293b; display: flex; align-items: center; justify-content: center; }
+    .preview-body img { max-width: 100%; max-height: 70vh; object-fit: contain; }
+    .preview-body .no-preview { color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 40px; }
+
+    .empty   { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
+    .empty-icon { font-size: 2.4rem; margin-bottom: 10px; }
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div id="root"><div class="loading">Loading…</div></div>
+</div>
+<input type="file" id="file-input" style="display:none" />
+
+<script type="module">
+import { memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper } from "/hub-sdk.js";
+import {
+  isBoard, GOVERNING_DOC_TYPES, MEETING_DOC_TYPES, docTypesFor, docTypeLabel, nextVersionNumber,
+  isImage, isPdf, fileIcon, formatBytes, accept, groupGoverningDocs, sortMeetingDocs,
+} from "./logic.js";
+
+// ── Globals ────────────────────────────────────────────────────────────────────
+const CONTEXT = window.__CONTEXT_URL ?? "";
+const DB      = window.__DB_URL      ?? "";
+const ME      = window.__CURRENT_MEMBER ?? null;
+const APP_ID  = window.__APP_ID ?? "document-library";
+const files   = createFilesHelper(window.__FILES_URL ?? "");
+const db      = createDbHelper(DB);
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let members      = [];
+let groups       = [];
+let memberMap    = new Map();
+let settings     = { board_group_id: "" };
+let documents    = [];
+let versions     = [];          // versions of the currently-open document, newest first
+let view         = "governing"; // "governing" | "meetings" | "detail" | "settings"
+let selectedDoc  = null;
+let modalEl      = null;
+let pendingFile  = null;        // File staged in the create/version modal before submit
+let uploading    = false;
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function amIBoard() { return isBoard(ME, groups, settings.board_group_id); }
+
+function memberName(id) { return memberMap.get(id)?.name ?? "Unknown"; }
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  return new Date(iso + "T12:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+// ── Demo data (shown when not running inside the hub) ─────────────────────────
+
+const DEMO_DOCUMENTS = [
+  { id: "d1", category: "governing", doc_type: "ccr", title: "Covenants, Conditions & Restrictions", description: "Governing document for the community, last amended 2024.", meeting_date: null, current_version: 2, created_by: "m1", created_at: "2018-03-15T00:00:00Z", updated_at: "2024-09-02T00:00:00Z" },
+  { id: "d2", category: "governing", doc_type: "bylaws", title: "HOA Bylaws", description: "Association bylaws covering board elections, meetings, and voting procedures.", meeting_date: null, current_version: 1, created_by: "m1", created_at: "2019-01-10T00:00:00Z", updated_at: "2019-01-10T00:00:00Z" },
+  { id: "d3", category: "governing", doc_type: "rules", title: "Community Rules & Regulations", description: "Pool hours, parking, pet policy, noise guidelines.", meeting_date: null, current_version: 3, created_by: "m1", created_at: "2020-06-01T00:00:00Z", updated_at: "2025-11-20T00:00:00Z" },
+  { id: "d4", category: "meeting", doc_type: "agenda", title: "Board Meeting Agenda", description: "", meeting_date: "2026-05-12", current_version: 1, created_by: "m1", created_at: "2026-05-05T00:00:00Z", updated_at: "2026-05-05T00:00:00Z" },
+  { id: "d5", category: "meeting", doc_type: "minutes", title: "Board Meeting Minutes", description: "", meeting_date: "2026-04-14", current_version: 1, created_by: "m1", created_at: "2026-04-15T00:00:00Z", updated_at: "2026-04-15T00:00:00Z" },
+];
+
+const DEMO_VERSIONS = {
+  d1: [
+    { id: "v2", document_id: "d1", version_number: 2, file_id: "", filename: "ccrs-2024-amended.pdf", mime_type: "application/pdf", size_bytes: 482_300, change_note: "Amended Article 7 (architectural review timeline).", uploaded_by: "m1", uploaded_at: "2024-09-02T00:00:00Z" },
+    { id: "v1", document_id: "d1", version_number: 1, file_id: "", filename: "ccrs-original.pdf", mime_type: "application/pdf", size_bytes: 410_900, change_note: "", uploaded_by: "m1", uploaded_at: "2018-03-15T00:00:00Z" },
+  ],
+  d2: [
+    { id: "v1b", document_id: "d2", version_number: 1, file_id: "", filename: "hoa-bylaws.pdf", mime_type: "application/pdf", size_bytes: 233_100, change_note: "", uploaded_by: "m1", uploaded_at: "2019-01-10T00:00:00Z" },
+  ],
+  d3: [
+    { id: "v3c", document_id: "d3", version_number: 3, file_id: "", filename: "rules-2025.pdf", mime_type: "application/pdf", size_bytes: 198_400, change_note: "Updated pool hours and added EV charging guidelines.", uploaded_by: "m1", uploaded_at: "2025-11-20T00:00:00Z" },
+    { id: "v2c", document_id: "d3", version_number: 2, file_id: "", filename: "rules-2022.pdf", mime_type: "application/pdf", size_bytes: 187_200, change_note: "Added pet policy section.", uploaded_by: "m1", uploaded_at: "2022-04-18T00:00:00Z" },
+    { id: "v1c", document_id: "d3", version_number: 1, file_id: "", filename: "rules-original.pdf", mime_type: "application/pdf", size_bytes: 152_000, change_note: "", uploaded_by: "m1", uploaded_at: "2020-06-01T00:00:00Z" },
+  ],
+  d4: [
+    { id: "v1d", document_id: "d4", version_number: 1, file_id: "", filename: "agenda-2026-05-12.pdf", mime_type: "application/pdf", size_bytes: 54_000, change_note: "", uploaded_by: "m1", uploaded_at: "2026-05-05T00:00:00Z" },
+  ],
+  d5: [
+    { id: "v1e", document_id: "d5", version_number: 1, file_id: "", filename: "minutes-2026-04-14.pdf", mime_type: "application/pdf", size_bytes: 61_500, change_note: "", uploaded_by: "m1", uploaded_at: "2026-04-15T00:00:00Z" },
+  ],
+};
+
+// ── Data loading ───────────────────────────────────────────────────────────────
+
+async function loadContext() {
+  if (!CONTEXT) {
+    members = [
+      { id: "m1", name: "Alex Board", role: "adult" },
+      { id: "m2", name: "Beth Resident", role: "adult" },
+    ];
+    memberMap = new Map(members.map(m => [m.id, m]));
+    groups = [];
+    return;
+  }
+  try {
+    const res = await fetch(`${CONTEXT}?keys=family.members,family.groups`);
+    const data = await res.json();
+    members = data["family.members"] ?? [];
+    groups  = data["family.groups"]  ?? [];
+  } catch { members = []; groups = []; }
+  memberMap = new Map(members.map(m => [m.id, m]));
+}
+
+async function loadSettings() {
+  if (!DB) return;
+  const r = await db(`SELECT board_group_id FROM app_settings LIMIT 1`);
+  settings = r.rows[0] ?? { board_group_id: "" };
+}
+
+async function loadDocuments() {
+  if (!DB) { documents = DEMO_DOCUMENTS; return; }
+  const r = await db(
+    `SELECT * FROM documents WHERE household_id = current_setting('app.household_id', true)::uuid ORDER BY title`
+  );
+  documents = r.rows;
+}
+
+async function loadVersions(documentId) {
+  if (!DB) { versions = DEMO_VERSIONS[documentId] ?? []; return; }
+  const r = await db(
+    `SELECT * FROM document_versions WHERE household_id = current_setting('app.household_id', true)::uuid AND document_id = ? ORDER BY version_number DESC`,
+    [documentId]
+  );
+  versions = r.rows;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+function render() {
+  const board = amIBoard();
+  document.getElementById("root").innerHTML = `
+    ${renderHeader(board)}
+    ${view !== "settings" ? renderTabs(board) : ""}
+    ${view === "governing" ? renderGoverning(board)
+    : view === "meetings"  ? renderMeetings(board)
+    : view === "detail"    ? renderDetail(board)
+    : view === "settings"  ? renderSettings(board)
+    : ""}
+  `;
+}
+
+function renderHeader(board) {
+  return `<header>
+    <div>
+      <h1>📚 Document Library</h1>
+      ${board ? `<div class="sub">Board access</div>` : ""}
+    </div>
+    ${board ? `<button class="btn-icon" onclick="setView('settings')" title="Board settings">⚙️</button>` : ""}
+  </header>`;
+}
+
+function renderTabs(board) {
+  const t = (label, v) =>
+    `<button class="tab ${view === v ? "active" : ""}" onclick="setView('${v}')">${esc(label)}</button>`;
+  return `<div class="tabs">
+    ${t("Governing Docs", "governing")}
+    ${t("Meeting Archive", "meetings")}
+  </div>`;
+}
+
+// ── View: Governing documents ─────────────────────────────────────────────────
+
+function renderGoverning(board) {
+  const docs = documents.filter(d => d.category === "governing");
+  const groupsByType = groupGoverningDocs(docs);
+
+  return `
+    <div class="section-row">
+      <div class="section-title" style="margin:0">Governing Documents</div>
+      ${board ? `<button class="btn btn-primary btn-sm" onclick="openDocumentModal('governing')">+ Add Document</button>` : ""}
+    </div>
+    ${groupsByType.length ? groupsByType.map(g => `
+      <div class="card">
+        <div class="section-title">${esc(g.type.label)}</div>
+        ${g.items.map(d => renderDocRow(d)).join("")}
+      </div>
+    `).join("") : `
+      <div class="card"><div class="empty">
+        <div class="empty-icon">📋</div>
+        <p>No governing documents yet.${board ? "<br>Add CC&Rs, bylaws, rules, or guidelines above." : ""}</p>
+      </div></div>
+    `}
+  `;
+}
+
+// ── View: Meeting archive ─────────────────────────────────────────────────────
+
+function renderMeetings(board) {
+  const docs = sortMeetingDocs(documents.filter(d => d.category === "meeting"));
+
+  return `
+    <div class="section-row">
+      <div class="section-title" style="margin:0">Meeting Archive</div>
+      ${board ? `<button class="btn btn-primary btn-sm" onclick="openDocumentModal('meeting')">+ Add Record</button>` : ""}
+    </div>
+    <div class="card">
+      ${docs.length ? docs.map(d => renderDocRow(d, true)).join("") : `
+        <div class="empty">
+          <div class="empty-icon">🗓️</div>
+          <p>No meeting records yet.${board ? "<br>Add an agenda or set of minutes above." : ""}</p>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function renderDocRow(d, showDate = false) {
+  const meta = showDate
+    ? `${docTypeLabel(d.category, d.doc_type)}${d.meeting_date ? ` · ${fmtDate(d.meeting_date)}` : ""}`
+    : `v${d.current_version} · Updated ${formatRelativeDate(d.updated_at)}`;
+  return `<div class="doc-row" onclick="openDetail('${esc(d.id)}')">
+    <div class="doc-icon">${docCategoryIcon(d)}</div>
+    <div class="doc-info">
+      <div class="doc-title">${esc(d.title)}</div>
+      <div class="doc-meta">${esc(meta)}</div>
+    </div>
+    <div class="doc-chevron">›</div>
+  </div>`;
+}
+
+function docCategoryIcon(d) {
+  if (d.category === "meeting") return d.doc_type === "agenda" ? "🗒️" : "📝";
+  return { ccr: "📜", bylaws: "⚖️", rules: "📋", architectural: "🏛️" }[d.doc_type] ?? "📄";
+}
+
+// ── View: Document detail ─────────────────────────────────────────────────────
+
+function renderDetail(board) {
+  const d = selectedDoc;
+  if (!d) return `<div class="empty">Document not found.</div>`;
+  const current = versions.find(v => v.version_number === d.current_version) ?? versions[0];
+
+  return `
+    <button class="back-btn" onclick="setView('${d.category === "meeting" ? "meetings" : "governing"}')">← Back</button>
+    <div class="card">
+      <div class="detail-header">
+        <div class="detail-icon">${docCategoryIcon(d)}</div>
+        <div>
+          <div class="detail-title">${esc(d.title)}</div>
+          <div class="detail-meta">
+            <span class="badge badge-blue">${esc(docTypeLabel(d.category, d.doc_type))}</span>
+            ${d.meeting_date ? ` · ${fmtDate(d.meeting_date)}` : ""}
+            · Current version: v${d.current_version}
+          </div>
+        </div>
+      </div>
+      ${d.description ? `<div class="detail-desc">${esc(d.description)}</div>` : ""}
+      ${current ? `
+        <div class="version-row" style="margin-top:14px">
+          <div class="version-badge">${fileIcon(current.mime_type)}</div>
+          <div class="version-info">
+            <div class="version-name">${esc(current.filename)}</div>
+            <div class="version-meta">${formatBytes(current.size_bytes)} · Uploaded by ${esc(memberName(current.uploaded_by))} · ${formatRelativeDate(current.uploaded_at)}</div>
+          </div>
+          <div class="version-actions">
+            <button class="btn btn-ghost btn-sm" onclick="previewVersion('${esc(current.id)}')">Preview</button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadVersion('${esc(current.id)}')">↓ Download</button>
+          </div>
+        </div>
+      ` : `<p class="empty" style="padding:14px 0">No file uploaded for this document yet.</p>`}
+      ${board ? `
+        <div class="detail-actions">
+          <button class="btn btn-primary btn-sm" onclick="openVersionModal('${esc(d.id)}')">Upload New Version</button>
+          <button class="btn btn-ghost btn-sm" onclick="openDocumentModal('${esc(d.category)}', '${esc(d.id)}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteDocument('${esc(d.id)}')">Delete</button>
+        </div>
+      ` : ""}
+    </div>
+    ${versions.length > 1 ? `
+      <div class="card">
+        <div class="section-title">Version History</div>
+        ${versions.map(v => `
+          <div class="version-row">
+            <div class="version-badge"><span class="badge ${v.version_number === d.current_version ? "badge-green" : "badge-gray"}">v${v.version_number}</span></div>
+            <div class="version-info">
+              <div class="version-name">${esc(v.filename)}</div>
+              <div class="version-meta">${formatBytes(v.size_bytes)} · ${esc(memberName(v.uploaded_by))} · ${formatRelativeDate(v.uploaded_at)}</div>
+              ${v.change_note ? `<div class="version-note">${esc(v.change_note)}</div>` : ""}
+            </div>
+            <div class="version-actions">
+              <button class="btn btn-ghost btn-sm" onclick="previewVersion('${esc(v.id)}')">Preview</button>
+              <button class="btn btn-ghost btn-sm" onclick="downloadVersion('${esc(v.id)}')">↓</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    ` : ""}
+  `;
+}
+
+// ── View: Settings ────────────────────────────────────────────────────────────
+
+function renderSettings(board) {
+  if (!board) return `<div class="empty">Board access required.</div>`;
+
+  const groupOpts = [
+    `<option value="" ${!settings.board_group_id ? "selected" : ""}>All adults</option>`,
+    ...groups.map(g => `<option value="${esc(g.id)}" ${settings.board_group_id === g.id ? "selected" : ""}>${esc(g.name)}</option>`),
+  ].join("");
+
+  return `
+    <button class="back-btn" onclick="setView('governing')">← Back</button>
+    <div class="card">
+      <div class="section-title">Board Access</div>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">
+        Members of the selected group can upload, version, edit, and delete documents.
+        Everyone else has read-only access.
+      </p>
+      <div class="form-group" style="margin-bottom:6px">
+        <label>Who has board access?</label>
+        <select onchange="saveBoardGroup(this.value)">${groupOpts}</select>
+      </div>
+      ${!groups.length ? `<p class="form-hint">Create groups at <strong>Settings → Groups</strong> to restrict board access to specific members. Until then, all adults have board access.</p>` : ""}
+    </div>
+  `;
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+window.setView = function(v) {
+  view = v;
+  if (v !== "detail") selectedDoc = null;
+  render();
+};
+
+window.openDetail = async function(id) {
+  const d = documents.find(x => x.id === id);
+  if (!d) return;
+  selectedDoc = d;
+  versions = [];
+  view = "detail";
+  render();
+  await loadVersions(id);
+  if (selectedDoc?.id === id) render();
+};
+
+// ── Modal scaffold ────────────────────────────────────────────────────────────
+
+function openModal(html) {
+  closeModal();
+  modalEl = document.createElement("div");
+  modalEl.className = "modal-backdrop";
+  modalEl.innerHTML = `<div class="modal">${html}</div>`;
+  modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
+  document.body.appendChild(modalEl);
+}
+function closeModal() { modalEl?.remove(); modalEl = null; pendingFile = null; uploading = false; }
+window.closeModal = closeModal;
+
+function filePickHtml(label = "Click to choose a file") {
+  const name = pendingFile ? pendingFile.name : label;
+  return `
+    <div class="form-group">
+      <label>File</label>
+      <div class="file-pick ${pendingFile ? "has-file" : ""}" onclick="pickFile()">${esc(name)}</div>
+      <div id="dl-progress" class="upload-progress" style="display:none">
+        <div class="upload-progress-track"><div id="dl-progress-bar" class="upload-progress-bar"></div></div>
+        <div id="dl-progress-label" class="upload-progress-label"></div>
+      </div>
+    </div>`;
+}
+
+window.pickFile = function() {
+  const input = document.getElementById("file-input");
+  input.value = "";
+  input.accept = accept();
+  input.onchange = () => {
+    if (input.files[0]) {
+      pendingFile = input.files[0];
+      const pickEl = modalEl?.querySelector(".file-pick");
+      if (pickEl) { pickEl.textContent = pendingFile.name; pickEl.classList.add("has-file"); }
+    }
+  };
+  input.click();
+};
+
+function showUploadProgress(pct, label) {
+  const track = document.getElementById("dl-progress");
+  const bar   = document.getElementById("dl-progress-bar");
+  const lbl   = document.getElementById("dl-progress-label");
+  if (track) track.style.display = "block";
+  if (bar)   bar.style.width = `${pct}%`;
+  if (lbl)   lbl.textContent = label;
+}
+
+// ── Modal: Create / Edit document ─────────────────────────────────────────────
+
+window.openDocumentModal = function(category, existingId) {
+  const d = existingId ? documents.find(x => x.id === existingId) : null;
+  pendingFile = null;
+  const types = docTypesFor(category);
+  const typeOpts = types.map(t => `<option value="${esc(t.id)}" ${(d?.doc_type ?? types[0].id) === t.id ? "selected" : ""}>${esc(t.label)}</option>`).join("");
+
+  openModal(`
+    <h3>${d ? `Edit ${esc(d.title)}` : category === "meeting" ? "Add Meeting Record" : "Add Document"}</h3>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="dm-title" value="${esc(d?.title ?? "")}" placeholder="${category === "meeting" ? "Board Meeting — May 2026" : "Covenants, Conditions & Restrictions"}" maxlength="120" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Type</label>
+        <select id="dm-type">${typeOpts}</select>
+      </div>
+      ${category === "meeting" ? `
+        <div class="form-group">
+          <label>Meeting Date</label>
+          <input type="date" id="dm-date" value="${esc(d?.meeting_date ?? "")}" />
+        </div>
+      ` : ""}
+    </div>
+    <div class="form-group">
+      <label>Description <span style="font-weight:400;text-transform:none">(optional)</span></label>
+      <textarea id="dm-desc" maxlength="500" placeholder="What is this document, and when does it apply?">${esc(d?.description ?? "")}</textarea>
+    </div>
+    ${d ? "" : filePickHtml()}
+    <div id="dm-error" class="error-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitDocument('${esc(category)}', '${esc(existingId ?? "")}')">${d ? "Save Changes" : "Add"}</button>
+    </div>
+  `);
+};
+
+window.submitDocument = async function(category, existingId) {
+  const title   = document.getElementById("dm-title")?.value.trim() ?? "";
+  const docType = document.getElementById("dm-type")?.value ?? "";
+  const desc    = document.getElementById("dm-desc")?.value.trim() ?? "";
+  const meetingDate = document.getElementById("dm-date")?.value || null;
+  const errorEl = document.getElementById("dm-error");
+
+  if (!title) { if (errorEl) errorEl.textContent = "Title is required."; document.getElementById("dm-title")?.focus(); return; }
+  if (!existingId && !pendingFile) { if (errorEl) errorEl.textContent = "Choose a file to upload."; return; }
+
+  const now = new Date().toISOString();
+
+  if (existingId) {
+    const updated = { ...documents.find(x => x.id === existingId), title, doc_type: docType, description: desc, meeting_date: meetingDate, updated_at: now };
+    const idx = documents.findIndex(x => x.id === existingId);
+    if (idx !== -1) documents[idx] = updated;
+    if (selectedDoc?.id === existingId) selectedDoc = updated;
+    closeModal();
+    render();
+    await db(
+      `UPDATE documents SET title=?, doc_type=?, description=?, meeting_date=?, updated_at=? WHERE id=? AND household_id=current_setting('app.household_id', true)::uuid`,
+      [title, docType, desc, meetingDate, now, existingId]
+    ).catch(() => loadDocuments().then(render));
+    return;
+  }
+
+  // New document — upload the first version, then create the document + version rows
+  const submitBtn = modalEl?.querySelector(".btn-primary");
+  if (submitBtn) submitBtn.disabled = true;
+  try {
+    const result = await files.upload(pendingFile, e => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 100);
+        showUploadProgress(pct, `Uploading ${pendingFile.name}… ${pct}%`);
+      }
+    });
+    const docId = crypto.randomUUID();
+    const verId = crypto.randomUUID();
+    await db(
+      `INSERT INTO documents (household_id, id, category, doc_type, title, description, meeting_date, current_version, created_by, created_at, updated_at)
+       VALUES (current_setting('app.household_id', true)::uuid, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
+      [docId, category, docType, title, desc, meetingDate, ME?.id ?? "", now, now]
+    );
+    await db(
+      `INSERT INTO document_versions (household_id, id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
+       VALUES (current_setting('app.household_id', true)::uuid, ?, ?, 1, ?, ?, ?, ?, '', ?, ?)`,
+      [verId, docId, result.id, pendingFile.name, pendingFile.type, pendingFile.size, ME?.id ?? "", now]
+    );
+    closeModal();
+    await loadDocuments();
+    render();
+  } catch (err) {
+    if (errorEl) errorEl.textContent = err.message ?? "Upload failed.";
+    if (submitBtn) submitBtn.disabled = false;
+  }
+};
+
+// ── Modal: Upload new version ─────────────────────────────────────────────────
+
+window.openVersionModal = function(documentId) {
+  const d = documents.find(x => x.id === documentId);
+  if (!d) return;
+  pendingFile = null;
+  openModal(`
+    <h3>Upload New Version</h3>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px">${esc(d.title)} — currently v${d.current_version}</p>
+    ${filePickHtml()}
+    <div class="form-group">
+      <label>What changed? <span style="font-weight:400;text-transform:none">(optional)</span></label>
+      <textarea id="vm-note" maxlength="300" placeholder="e.g. Amended Article 4 per the May 2026 board vote"></textarea>
+    </div>
+    <div id="vm-error" class="error-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitVersion('${esc(documentId)}')">Upload</button>
+    </div>
+  `);
+};
+
+window.submitVersion = async function(documentId) {
+  const d = documents.find(x => x.id === documentId);
+  const note = document.getElementById("vm-note")?.value.trim() ?? "";
+  const errorEl = document.getElementById("vm-error");
+  if (!pendingFile) { if (errorEl) errorEl.textContent = "Choose a file to upload."; return; }
+
+  const submitBtn = modalEl?.querySelector(".btn-primary");
+  if (submitBtn) submitBtn.disabled = true;
+  try {
+    const result = await files.upload(pendingFile, e => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 100);
+        showUploadProgress(pct, `Uploading ${pendingFile.name}… ${pct}%`);
+      }
+    });
+    const now = new Date().toISOString();
+    const versionNumber = nextVersionNumber(d.current_version);
+    const verId = crypto.randomUUID();
+    await db(
+      `INSERT INTO document_versions (household_id, id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
+       VALUES (current_setting('app.household_id', true)::uuid, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [verId, documentId, versionNumber, result.id, pendingFile.name, pendingFile.type, pendingFile.size, note, ME?.id ?? "", now]
+    );
+    await db(
+      `UPDATE documents SET current_version=?, updated_at=? WHERE id=? AND household_id=current_setting('app.household_id', true)::uuid`,
+      [versionNumber, now, documentId]
+    );
+    closeModal();
+    d.current_version = versionNumber;
+    d.updated_at = now;
+    if (selectedDoc?.id === documentId) await loadVersions(documentId);
+    render();
+  } catch (err) {
+    if (errorEl) errorEl.textContent = err.message ?? "Upload failed.";
+    if (submitBtn) submitBtn.disabled = false;
+  }
+};
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+
+window.deleteDocument = async function(documentId) {
+  const d = documents.find(x => x.id === documentId);
+  if (!d) return;
+  if (!await hubConfirm({ message: `Delete "${d.title}"?`, description: "All versions and their files will be permanently removed.", confirmLabel: "Delete", destructive: true })) return;
+
+  await loadVersions(documentId);
+  await Promise.all([
+    db(`DELETE FROM document_versions WHERE document_id=? AND household_id=current_setting('app.household_id', true)::uuid`, [documentId]),
+    db(`DELETE FROM documents WHERE id=? AND household_id=current_setting('app.household_id', true)::uuid`, [documentId]),
+    ...versions.map(v => v.file_id ? files.delete(v.file_id).catch(() => {}) : Promise.resolve()),
+  ]);
+  documents = documents.filter(x => x.id !== documentId);
+  view = d.category === "meeting" ? "meetings" : "governing";
+  selectedDoc = null;
+  render();
+};
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+window.saveBoardGroup = async function(groupId) {
+  settings.board_group_id = groupId;
+  render();
+  await db(
+    `INSERT INTO app_settings (household_id, board_group_id) VALUES (current_setting('app.household_id', true)::uuid, ?)
+     ON CONFLICT (household_id) DO UPDATE SET board_group_id = EXCLUDED.board_group_id`,
+    [groupId]
+  ).catch(() => {});
+};
+
+// ── Preview / download ────────────────────────────────────────────────────────
+
+async function fetchBlobUrl(fileId) {
+  const res = await fetch(files.url(fileId));
+  const blob = await res.blob();
+  return { blobUrl: URL.createObjectURL(blob), mimeType: blob.type };
+}
+
+window.downloadVersion = async function(versionId) {
+  const v = versions.find(x => x.id === versionId);
+  if (!v) return;
+  const { blobUrl } = await fetchBlobUrl(v.file_id);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = v.filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
+};
+
+window.previewVersion = async function(versionId) {
+  const v = versions.find(x => x.id === versionId);
+  if (!v) return;
+
+  const el = document.createElement("div");
+  el.className = "modal-backdrop";
+  el.innerHTML = `
+    <div class="modal preview-modal">
+      <div class="preview-header">
+        <h3>${esc(v.filename)}</h3>
+        <button id="preview-dl-btn" class="btn btn-ghost btn-sm" title="Download">↓ Download</button>
+        <button class="btn-icon" onclick="this.closest('.modal-backdrop').remove()">✕</button>
+      </div>
+      <div class="preview-body" id="preview-body-inner">
+        <div class="no-preview"><p style="color:#94a3b8">Loading…</p></div>
+      </div>
+    </div>`;
+  el.addEventListener("click", e => { if (e.target === el) el.remove(); });
+  document.body.appendChild(el);
+
+  const bodyEl = el.querySelector("#preview-body-inner");
+  const dlBtn  = el.querySelector("#preview-dl-btn");
+
+  let blobUrl;
+  try {
+    ({ blobUrl } = await fetchBlobUrl(v.file_id));
+  } catch {
+    bodyEl.innerHTML = `<div class="no-preview"><p style="color:#94a3b8">Failed to load file</p></div>`;
+    return;
+  }
+
+  const origRemove = el.remove.bind(el);
+  el.remove = () => { URL.revokeObjectURL(blobUrl); origRemove(); };
+
+  dlBtn.onclick = () => {
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = v.filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  if (isImage(v.mime_type)) {
+    bodyEl.innerHTML = `<img src="${blobUrl}" alt="${esc(v.filename)}" />`;
+  } else if (isPdf(v.mime_type)) {
+    await renderPdf(blobUrl, bodyEl);
+  } else {
+    bodyEl.innerHTML = `<div class="no-preview">
+      <div style="font-size:3rem;margin-bottom:12px">${fileIcon(v.mime_type)}</div>
+      <p>No preview available</p>
+    </div>`;
+  }
+};
+
+// ── PDF.js renderer (mirrors the docs app) ────────────────────────────────────
+const PDFJS_VERSION = "4.9.155";
+const PDFJS_CDN     = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build`;
+
+let _pdfjsLib = null;
+async function getPdfjs() {
+  if (_pdfjsLib) return _pdfjsLib;
+  const { getDocument, GlobalWorkerOptions } = await import(`${PDFJS_CDN}/pdf.min.mjs`);
+  GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.mjs`;
+  _pdfjsLib = { getDocument };
+  return _pdfjsLib;
+}
+
+async function renderPdf(blobUrl, container) {
+  container.style.cssText = "overflow-y:auto;background:#525659;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;height:70vh";
+  container.innerHTML = `<p style="color:#ccc;font-size:.85rem">Loading PDF…</p>`;
+
+  try {
+    const { getDocument } = await getPdfjs();
+    const pdf = await getDocument(blobUrl).promise;
+    container.innerHTML = "";
+
+    const entries = Array.from({ length: pdf.numPages }, (_, i) => {
+      const canvas = document.createElement("canvas");
+      canvas.style.cssText = "display:block;box-shadow:0 2px 8px rgba(0,0,0,.4);max-width:100%";
+      const label = document.createElement("p");
+      label.textContent = `Page ${i + 1} of ${pdf.numPages}`;
+      label.style.cssText = "color:#aaa;font-size:.72rem;text-align:center;margin-top:-4px";
+      container.appendChild(canvas);
+      container.appendChild(label);
+      return { canvas, pageNum: i + 1 };
+    });
+
+    await Promise.all(entries.map(async ({ canvas, pageNum }) => {
+      const page     = await pdf.getPage(pageNum);
+      const vp       = page.getViewport({ scale: 1 });
+      const scale    = Math.min(1.5, (container.clientWidth - 32) / vp.width);
+      const viewport = page.getViewport({ scale });
+      canvas.width   = viewport.width;
+      canvas.height  = viewport.height;
+      await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+    }));
+  } catch (err) {
+    container.innerHTML = `<p style="color:#fca5a5;padding:20px">Failed to render PDF: ${err.message}</p>`;
+  }
+}
+
+// ── Deep link ─────────────────────────────────────────────────────────────────
+
+function handleDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  const v = params.get("view");
+  const VALID_VIEWS = ["governing", "meetings", "settings"];
+  if (v && VALID_VIEWS.includes(v)) view = v;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+(async () => {
+  await Promise.all([loadContext(), loadSettings(), loadDocuments()]);
+  handleDeepLink();
+  render();
+})();
+</script>
+</body>
+</html>

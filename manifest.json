@@ -1,0 +1,26 @@
+{
+  "id": "document-library",
+  "name": "Document Library",
+  "version": "1.0.0",
+  "description": "Versioned repository for governing documents — CC&Rs, bylaws, architectural guidelines, rules — plus a chronological archive of board meeting agendas and minutes. The Board uploads and versions files; everyone can always access the current governing docs.",
+  "entrypoint": "index.html",
+  "runtime": "static",
+  "category": "organization",
+  "tags": ["documents", "governance", "hoa", "bylaws", "minutes", "board"],
+  "icon": "📚",
+  "storage": "db",
+  "data_access": {
+    "reads": ["family.members", "family.groups"],
+    "writes": []
+  },
+  "permissions": {
+    "default_audience": "everyone",
+    "requires_approval": false
+  },
+  "nav": { "label": "Library" },
+  "ai_access": {
+    "allowed": true,
+    "mode": "read",
+    "db_exports": ["governing_documents", "meeting_archive"]
+  }
+}
