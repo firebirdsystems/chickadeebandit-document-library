@@ -18,6 +18,28 @@
     "requires_approval": false
   },
   "nav": { "label": "Library" },
+  "row_policies": {
+    "documents": {
+      "kind": "owner_or_visibility",
+      "member_column": "created_by",
+      "visibility_column": "visibility",
+      "everyone_values": ["everyone"],
+      "adult_values": [],
+      "write_owner_only": true,
+      "insert_privileged_only": true,
+      "bypass_group_setting": { "settings_table": "app_settings", "settings_key": "board_group_id" }
+    },
+    "document_versions": {
+      "kind": "inherit_visibility",
+      "fk_column": "document_id",
+      "parent_table": "documents",
+      "writer_column": "uploaded_by",
+      "insert_privileged_only": true
+    },
+    "app_settings": {
+      "kind": "adult_only"
+    }
+  },
   "ai_access": {
     "allowed": true,
     "mode": "read",

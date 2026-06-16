@@ -260,14 +260,14 @@ async function loadContext() {
 
 async function loadSettings() {
   if (!DB) return;
-  const r = await db(`SELECT board_group_id FROM app_settings LIMIT 1`);
-  settings = r.rows[0] ?? { board_group_id: "" };
+  const r = await db(`SELECT board_group_id FROM app_document_library__app_settings LIMIT 1`);
+  settings = r.rows?.[0] ?? { board_group_id: "" };
 }
 
 async function loadDocuments() {
   if (!DB) { documents = DEMO_DOCUMENTS; return; }
   const r = await db(
-    `SELECT * FROM documents WHERE household_id = current_setting('app.household_id', true)::uuid ORDER BY title`
+    `SELECT * FROM app_document_library__documents ORDER BY title`
   );
   documents = r.rows;
 }
@@ -275,7 +275,7 @@ async function loadDocuments() {
 async function loadVersions(documentId) {
   if (!DB) { versions = DEMO_VERSIONS[documentId] ?? []; return; }
   const r = await db(
-    `SELECT * FROM document_versions WHERE household_id = current_setting('app.household_id', true)::uuid AND document_id = ? ORDER BY version_number DESC`,
+    `SELECT * FROM app_document_library__document_versions WHERE document_id = ? ORDER BY version_number DESC`,
     [documentId]
   );
   versions = r.rows;
@@ -599,7 +599,7 @@ window.submitDocument = async function(category, existingId) {
     closeModal();
     render();
     await db(
-      `UPDATE documents SET title=?, doc_type=?, description=?, meeting_date=?, updated_at=? WHERE id=? AND household_id=current_setting('app.household_id', true)::uuid`,
+      `UPDATE app_document_library__documents SET title=?, doc_type=?, description=?, meeting_date=?, updated_at=? WHERE id=?`,
       [title, docType, desc, meetingDate, now, existingId]
     ).catch(() => loadDocuments().then(render));
     return;
@@ -618,13 +618,13 @@ window.submitDocument = async function(category, existingId) {
     const docId = crypto.randomUUID();
     const verId = crypto.randomUUID();
     await db(
-      `INSERT INTO documents (household_id, id, category, doc_type, title, description, meeting_date, current_version, created_by, created_at, updated_at)
-       VALUES (current_setting('app.household_id', true)::uuid, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
+      `INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, created_by, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
       [docId, category, docType, title, desc, meetingDate, ME?.id ?? "", now, now]
     );
     await db(
-      `INSERT INTO document_versions (household_id, id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
-       VALUES (current_setting('app.household_id', true)::uuid, ?, ?, 1, ?, ?, ?, ?, '', ?, ?)`,
+      `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
+       VALUES (?, ?, 1, ?, ?, ?, ?, '', ?, ?)`,
       [verId, docId, result.id, pendingFile.name, pendingFile.type, pendingFile.size, ME?.id ?? "", now]
     );
     closeModal();
@@ -677,12 +677,12 @@ window.submitVersion = async function(documentId) {
     const versionNumber = nextVersionNumber(d.current_version);
     const verId = crypto.randomUUID();
     await db(
-      `INSERT INTO document_versions (household_id, id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
-       VALUES (current_setting('app.household_id', true)::uuid, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [verId, documentId, versionNumber, result.id, pendingFile.name, pendingFile.type, pendingFile.size, note, ME?.id ?? "", now]
     );
     await db(
-      `UPDATE documents SET current_version=?, updated_at=? WHERE id=? AND household_id=current_setting('app.household_id', true)::uuid`,
+      `UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=?`,
       [versionNumber, now, documentId]
     );
     closeModal();
@@ -705,8 +705,8 @@ window.deleteDocument = async function(documentId) {
 
   await loadVersions(documentId);
   await Promise.all([
-    db(`DELETE FROM document_versions WHERE document_id=? AND household_id=current_setting('app.household_id', true)::uuid`, [documentId]),
-    db(`DELETE FROM documents WHERE id=? AND household_id=current_setting('app.household_id', true)::uuid`, [documentId]),
+    db(`DELETE FROM app_document_library__document_versions WHERE document_id=?`, [documentId]),
+    db(`DELETE FROM app_document_library__documents WHERE id=?`, [documentId]),
     ...versions.map(v => v.file_id ? files.delete(v.file_id).catch(() => {}) : Promise.resolve()),
   ]);
   documents = documents.filter(x => x.id !== documentId);
@@ -721,8 +721,8 @@ window.saveBoardGroup = async function(groupId) {
   settings.board_group_id = groupId;
   render();
   await db(
-    `INSERT INTO app_settings (household_id, board_group_id) VALUES (current_setting('app.household_id', true)::uuid, ?)
-     ON CONFLICT (household_id) DO UPDATE SET board_group_id = EXCLUDED.board_group_id`,
+    `INSERT INTO app_document_library__app_settings (singleton_key, board_group_id) VALUES ('settings', ?)
+     ON CONFLICT (singleton_key) DO UPDATE SET board_group_id = excluded.board_group_id`,
     [groupId]
   ).catch(() => {});
 };
