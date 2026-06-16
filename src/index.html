@@ -171,7 +171,7 @@
 import { memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper } from "/hub-sdk.js";
 import {
   isBoard, GOVERNING_DOC_TYPES, MEETING_DOC_TYPES, docTypesFor, docTypeLabel, nextVersionNumber,
-  isImage, isPdf, fileIcon, formatBytes, accept, groupGoverningDocs, sortMeetingDocs,
+  isImage, isPreviewableImage, isPdf, fileIcon, formatBytes, accept, groupGoverningDocs, sortMeetingDocs,
 } from "./logic.js";
 
 // ── Globals ────────────────────────────────────────────────────────────────────
@@ -545,26 +545,36 @@ function showUploadProgress(pct, label) {
 window.openDocumentModal = function(category, existingId) {
   const d = existingId ? documents.find(x => x.id === existingId) : null;
   pendingFile = null;
-  const types = docTypesFor(category);
+  const activeCategory = d?.category ?? category;
+  const types = docTypesFor(activeCategory);
   const typeOpts = types.map(t => `<option value="${esc(t.id)}" ${(d?.doc_type ?? types[0].id) === t.id ? "selected" : ""}>${esc(t.label)}</option>`).join("");
 
   openModal(`
     <h3>${d ? `Edit ${esc(d.title)}` : category === "meeting" ? "Add Meeting Record" : "Add Document"}</h3>
     <div class="form-group">
       <label>Title</label>
-      <input type="text" id="dm-title" value="${esc(d?.title ?? "")}" placeholder="${category === "meeting" ? "Board Meeting — May 2026" : "Covenants, Conditions & Restrictions"}" maxlength="120" />
+      <input type="text" id="dm-title" value="${esc(d?.title ?? "")}" placeholder="${activeCategory === "meeting" ? "Board Meeting — May 2026" : "Covenants, Conditions & Restrictions"}" maxlength="120" />
     </div>
     <div class="form-row">
+      ${d ? `
+        <div class="form-group">
+          <label>Section</label>
+          <select id="dm-category" onchange="refreshDocTypeOpts(this.value)">
+            <option value="governing" ${activeCategory === "governing" ? "selected" : ""}>Governing Docs</option>
+            <option value="meeting"   ${activeCategory === "meeting"   ? "selected" : ""}>Meeting Archive</option>
+          </select>
+        </div>
+      ` : ""}
       <div class="form-group">
         <label>Type</label>
         <select id="dm-type">${typeOpts}</select>
       </div>
-      ${category === "meeting" ? `
-        <div class="form-group">
-          <label>Meeting Date</label>
-          <input type="date" id="dm-date" value="${esc(d?.meeting_date ?? "")}" />
-        </div>
-      ` : ""}
+    </div>
+    <div id="dm-date-wrap" ${activeCategory !== "meeting" ? 'style="display:none"' : ""}>
+      <div class="form-group">
+        <label>Meeting Date</label>
+        <input type="date" id="dm-date" value="${esc(d?.meeting_date ?? "")}" />
+      </div>
     </div>
     <div class="form-group">
       <label>Description <span style="font-weight:400;text-transform:none">(optional)</span></label>
@@ -579,12 +589,23 @@ window.openDocumentModal = function(category, existingId) {
   `);
 };
 
+window.refreshDocTypeOpts = function(newCategory) {
+  const typeEl = document.getElementById("dm-type");
+  const dateWrap = document.getElementById("dm-date-wrap");
+  if (!typeEl) return;
+  const types = docTypesFor(newCategory);
+  typeEl.innerHTML = types.map(t => `<option value="${esc(t.id)}">${esc(t.label)}</option>`).join("");
+  if (dateWrap) dateWrap.style.display = newCategory === "meeting" ? "" : "none";
+};
+
 window.submitDocument = async function(category, existingId) {
   const title   = document.getElementById("dm-title")?.value.trim() ?? "";
   const docType = document.getElementById("dm-type")?.value ?? "";
   const desc    = document.getElementById("dm-desc")?.value.trim() ?? "";
   const meetingDate = document.getElementById("dm-date")?.value || null;
   const errorEl = document.getElementById("dm-error");
+  // When editing, the category select may have been changed
+  const activeCategory = document.getElementById("dm-category")?.value ?? category;
 
   if (!title) { if (errorEl) errorEl.textContent = "Title is required."; document.getElementById("dm-title")?.focus(); return; }
   if (!existingId && !pendingFile) { if (errorEl) errorEl.textContent = "Choose a file to upload."; return; }
@@ -592,15 +613,15 @@ window.submitDocument = async function(category, existingId) {
   const now = new Date().toISOString();
 
   if (existingId) {
-    const updated = { ...documents.find(x => x.id === existingId), title, doc_type: docType, description: desc, meeting_date: meetingDate, updated_at: now };
+    const updated = { ...documents.find(x => x.id === existingId), title, category: activeCategory, doc_type: docType, description: desc, meeting_date: meetingDate, updated_at: now };
     const idx = documents.findIndex(x => x.id === existingId);
     if (idx !== -1) documents[idx] = updated;
     if (selectedDoc?.id === existingId) selectedDoc = updated;
     closeModal();
     render();
     await db(
-      `UPDATE app_document_library__documents SET title=?, doc_type=?, description=?, meeting_date=?, updated_at=? WHERE id=?`,
-      [title, docType, desc, meetingDate, now, existingId]
+      `UPDATE app_document_library__documents SET title=?, category=?, doc_type=?, description=?, meeting_date=?, updated_at=? WHERE id=?`,
+      [title, activeCategory, docType, desc, meetingDate, now, existingId]
     ).catch(() => loadDocuments().then(render));
     return;
   }
@@ -791,7 +812,7 @@ window.previewVersion = async function(versionId) {
     document.body.removeChild(a);
   };
 
-  if (isImage(v.mime_type)) {
+  if (isPreviewableImage(v.mime_type)) {
     bodyEl.innerHTML = `<img src="${blobUrl}" alt="${esc(v.filename)}" />`;
   } else if (isPdf(v.mime_type)) {
     await renderPdf(blobUrl, bodyEl);

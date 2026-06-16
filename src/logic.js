@@ -72,6 +72,10 @@ export function isImage(mimeType) {
   return mimeType?.startsWith("image/") === true;
 }
 
+export function isPreviewableImage(mimeType) {
+  return isImage(mimeType) && mimeType !== "image/heic" && mimeType !== "image/heif";
+}
+
 export function isPdf(mimeType) {
   return mimeType === "application/pdf";
 }
