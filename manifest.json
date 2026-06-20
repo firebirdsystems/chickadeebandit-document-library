@@ -27,7 +27,7 @@
       "adult_values": [],
       "write_owner_only": true,
       "insert_privileged_only": true,
-      "bypass_group_setting": { "settings_table": "app_settings", "settings_key": "board_group_id" }
+      "bypass_group_setting": { "settings_table": "settings", "settings_key": "board_group_id" }
     },
     "document_versions": {
       "kind": "inherit_visibility",
@@ -35,6 +35,9 @@
       "parent_table": "documents",
       "writer_column": "uploaded_by",
       "insert_privileged_only": true
+    },
+    "settings": {
+      "kind": "adult_only"
     },
     "app_settings": {
       "kind": "adult_only"
