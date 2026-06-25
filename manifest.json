@@ -37,11 +37,15 @@
       "insert_privileged_only": true
     },
     "settings": {
-      "kind": "adult_only"
+      "kind": "app_config"
     },
     "app_settings": {
       "kind": "adult_only"
     }
+  },
+  "admin_config": {
+    "settings_table": "settings",
+    "keys": ["board_group_id"]
   },
   "ai_access": {
     "allowed": true,
