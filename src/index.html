@@ -179,6 +179,8 @@ const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB      = window.__DB_URL      ?? "";
 const ME      = window.__CURRENT_MEMBER ?? null;
 const APP_ID  = window.__APP_ID ?? "document-library";
+const IS_ADMIN = window.__IS_ADMIN ?? false;
+const ADMIN_CONFIG = window.__ADMIN_CONFIG_URL ?? "";
 const files   = createFilesHelper(window.__FILES_URL ?? "");
 const db      = createDbHelper(DB);
 
@@ -260,9 +262,10 @@ async function loadContext() {
 
 async function loadSettings() {
   if (!DB) return;
-  // `settings` is adult_only — non-adults can't read it (and don't need to,
-  // since they're never board members). Swallow the error and default so init
-  // still completes for everyone.
+  // `settings` is the `app_config` table: everyone may read the board_group_id
+  // pointer, but it is writable ONLY through the admin-gated /api/admin-config
+  // endpoint (app-originated SQL writes are rejected). Swallow read errors and
+  // default so init still completes for everyone.
   const r = await db(
     `SELECT value AS board_group_id FROM app_document_library__settings WHERE key = 'board_group_id' LIMIT 1`
   ).catch(() => null);
@@ -307,7 +310,7 @@ function renderHeader(board) {
       <h1>📚 Document Library</h1>
       ${board ? `<div class="sub">Board access</div>` : ""}
     </div>
-    ${board ? `<button class="btn-icon" onclick="setView('settings')" title="Board settings">⚙️</button>` : ""}
+    ${IS_ADMIN ? `<button class="btn-icon" onclick="setView('settings')" title="Board settings">⚙️</button>` : ""}
   </header>`;
 }
 
@@ -453,7 +456,9 @@ function renderDetail(board) {
 // ── View: Settings ────────────────────────────────────────────────────────────
 
 function renderSettings(board) {
-  if (!board) return `<div class="empty">Board access required.</div>`;
+  // Only a hub admin may appoint the Board — the /api/admin-config endpoint
+  // enforces this server-side, so the editable control is admin-only here too.
+  if (!IS_ADMIN) return `<div class="empty">Admin access required to configure the Board group.</div>`;
 
   const groupOpts = [
     `<option value="" ${!settings.board_group_id ? "selected" : ""}>All adults</option>`,
@@ -744,13 +749,29 @@ window.deleteDocument = async function(documentId) {
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 window.saveBoardGroup = async function(groupId) {
-  settings.board_group_id = groupId;
-  render();
-  await db(
-    `INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)
-     ON CONFLICT (key) DO UPDATE SET value = excluded.value`,
-    [groupId]
-  ).catch(() => {});
+  // The board_group_id pointer is the trust root for "who is the Board". It is
+  // written ONLY through the admin-gated /api/admin-config endpoint; the
+  // `app_config` row policy rejects any app-originated SQL write to it. This
+  // closes the bootstrap hole where any adult could crown themselves the Board.
+  const prev = settings.board_group_id;
+  try {
+    const res = await fetch(ADMIN_CONFIG, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: "board_group_id", value: groupId }),
+    });
+    if (!res.ok) {
+      let m = "Save failed";
+      try { m = (await res.json()).error ?? m; } catch {}
+      throw new Error(m);
+    }
+    settings.board_group_id = groupId;
+    render();
+  } catch (e) {
+    settings.board_group_id = prev;
+    render();
+    alert(e.message ?? "Save failed");
+  }
 };
 
 // ── Preview / download ────────────────────────────────────────────────────────
