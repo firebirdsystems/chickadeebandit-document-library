@@ -168,7 +168,7 @@
 <input type="file" id="file-input" style="display:none" />
 
 <script type="module">
-import { memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper } from "/hub-sdk.js";
+import { hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper } from "/hub-sdk.js";
 import {
   isBoard, GOVERNING_DOC_TYPES, MEETING_DOC_TYPES, docTypesFor, docTypeLabel, nextVersionNumber,
   isImage, isPreviewableImage, isPdf, fileIcon, formatBytes, accept, groupGoverningDocs, sortMeetingDocs,
@@ -770,7 +770,7 @@ window.saveBoardGroup = async function(groupId) {
   } catch (e) {
     settings.board_group_id = prev;
     render();
-    alert(e.message ?? "Save failed");
+    hubAlert(e.message ?? "Save failed");
   }
 };
 
