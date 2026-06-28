@@ -869,51 +869,9 @@ window.previewVersion = async function(versionId) {
   }
 };
 
-// ── PDF.js renderer (mirrors the docs app) ────────────────────────────────────
-const PDFJS_VERSION = "4.9.155";
-const PDFJS_CDN     = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build`;
-
-let _pdfjsLib = null;
-async function getPdfjs() {
-  if (_pdfjsLib) return _pdfjsLib;
-  const { getDocument, GlobalWorkerOptions } = await import(`${PDFJS_CDN}/pdf.min.mjs`);
-  GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.mjs`;
-  _pdfjsLib = { getDocument };
-  return _pdfjsLib;
-}
-
 async function renderPdf(blobUrl, container) {
-  container.style.cssText = "overflow-y:auto;background:#525659;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;height:70vh";
-  container.innerHTML = `<p style="color:#ccc;font-size:.85rem">Loading PDF…</p>`;
-
-  try {
-    const { getDocument } = await getPdfjs();
-    const pdf = await getDocument(blobUrl).promise;
-    container.innerHTML = "";
-
-    const entries = Array.from({ length: pdf.numPages }, (_, i) => {
-      const canvas = document.createElement("canvas");
-      canvas.style.cssText = "display:block;box-shadow:0 2px 8px rgba(0,0,0,.4);max-width:100%";
-      const label = document.createElement("p");
-      label.textContent = `Page ${i + 1} of ${pdf.numPages}`;
-      label.style.cssText = "color:#aaa;font-size:.72rem;text-align:center;margin-top:-4px";
-      container.appendChild(canvas);
-      container.appendChild(label);
-      return { canvas, pageNum: i + 1 };
-    });
-
-    await Promise.all(entries.map(async ({ canvas, pageNum }) => {
-      const page     = await pdf.getPage(pageNum);
-      const vp       = page.getViewport({ scale: 1 });
-      const scale    = Math.min(1.5, (container.clientWidth - 32) / vp.width);
-      const viewport = page.getViewport({ scale });
-      canvas.width   = viewport.width;
-      canvas.height  = viewport.height;
-      await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
-    }));
-  } catch (err) {
-    container.innerHTML = `<p style="color:#fca5a5;padding:20px">Failed to render PDF: ${err.message}</p>`;
-  }
+  container.style.cssText = "background:#525659;height:70vh;padding:0;display:block;overflow:hidden";
+  container.innerHTML = `<iframe src="${blobUrl}" title="PDF preview" style="width:100%;height:100%;border:0;background:#525659"></iframe>`;
 }
 
 // ── Deep link ─────────────────────────────────────────────────────────────────
