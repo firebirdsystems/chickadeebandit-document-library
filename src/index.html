@@ -325,11 +325,27 @@ function renderTabs(board) {
 
 // ── View: Governing documents ─────────────────────────────────────────────────
 
+function renderBoardNotice() {
+  // When no board group is configured the hub rejects every document/version
+  // INSERT (insert_privileged_only has no group to resolve), so the management
+  // UI is hidden for everyone. Explain why, and point admins at the fix.
+  if (settings.board_group_id) return "";
+  return `<div class="card" style="border:1.5px solid #fbbf24;background:#fffbeb;box-shadow:none">
+    <div style="font-size:.85rem;color:#92400e">
+      <strong>No board configured yet.</strong>
+      ${IS_ADMIN
+        ? "Choose a Board group in settings (⚙️ top-right) before documents can be added or edited."
+        : "An admin must choose a Board group before documents can be added or edited."}
+    </div>
+  </div>`;
+}
+
 function renderGoverning(board) {
   const docs = documents.filter(d => d.category === "governing");
   const groupsByType = groupGoverningDocs(docs);
 
   return `
+    ${renderBoardNotice()}
     <div class="section-row">
       <div class="section-title" style="margin:0">Governing Documents</div>
       ${board ? `<button class="btn btn-primary btn-sm" onclick="openDocumentModal('governing')">+ Add Document</button>` : ""}
@@ -354,6 +370,7 @@ function renderMeetings(board) {
   const docs = sortMeetingDocs(documents.filter(d => d.category === "meeting"));
 
   return `
+    ${renderBoardNotice()}
     <div class="section-row">
       <div class="section-title" style="margin:0">Meeting Archive</div>
       ${board ? `<button class="btn btn-primary btn-sm" onclick="openDocumentModal('meeting')">+ Add Record</button>` : ""}
@@ -461,7 +478,7 @@ function renderSettings(board) {
   if (!IS_ADMIN) return `<div class="empty">Admin access required to configure the Board group.</div>`;
 
   const groupOpts = [
-    `<option value="" ${!settings.board_group_id ? "selected" : ""}>All adults</option>`,
+    `<option value="" ${!settings.board_group_id ? "selected" : ""}>— No board configured —</option>`,
     ...groups.map(g => `<option value="${esc(g.id)}" ${settings.board_group_id === g.id ? "selected" : ""}>${esc(g.name)}</option>`),
   ].join("");
 
@@ -471,13 +488,15 @@ function renderSettings(board) {
       <div class="section-title">Board Access</div>
       <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">
         Members of the selected group can upload, version, edit, and delete documents.
-        Everyone else has read-only access.
+        Everyone else has read-only access. Until a board group is chosen,
+        <strong>no one</strong> can add or edit documents.
       </p>
       <div class="form-group" style="margin-bottom:6px">
         <label>Who has board access?</label>
         <select onchange="saveBoardGroup(this.value)">${groupOpts}</select>
       </div>
-      ${!groups.length ? `<p class="form-hint">Create groups at <strong>Settings → Groups</strong> to restrict board access to specific members. Until then, all adults have board access.</p>` : ""}
+      ${!groups.length ? `<p class="form-hint">Create groups at <strong>Settings → Groups</strong>, then return here to choose which group has board access.</p>` : ""}
+      ${groups.length && !settings.board_group_id ? `<p class="form-hint" style="color:#92400e">⚠️ No board group is set yet — choose one above so documents can be added.</p>` : ""}
     </div>
   `;
 }

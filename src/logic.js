@@ -6,19 +6,24 @@ export { isAdult };
 // ── Board permission ──────────────────────────────────────────────────────────
 /**
  * Returns true if the given member may upload, version, and manage documents.
- * When a board group is configured, only its members qualify; otherwise any
- * adult is treated as board (mirrors the amenity-reservations / architectural-
- * review "no committee configured yet" fallback).
+ *
+ * This MUST mirror the hub's server-side privileged check for the `documents`
+ * row policy (`insert_privileged_only` + `bypass_group_setting`): a member is
+ * privileged iff a board group is configured AND that group still exists AND the
+ * member belongs to it. There is deliberately NO "all adults" fallback when no
+ * group is set — the hub rejects every INSERT in that case
+ * (`insert_privileged_only` requires a resolvable group), so showing the upload
+ * UI to adults would only produce 403s. An admin must appoint a Board group in
+ * settings before anyone can manage documents.
  *
  * @param {object|null} member
  * @param {Array}  groups
  * @param {string|null} boardGroupId
  */
 export function isBoard(member, groups, boardGroupId) {
-  if (!member) return false;
-  const g = boardGroupId ? groups.find(g => g.id === boardGroupId) : null;
-  if (g) return g.memberIds.includes(member.id);
-  return isAdult(member);
+  if (!member || !boardGroupId) return false;
+  const g = groups.find(g => g.id === boardGroupId);
+  return !!g && g.memberIds.includes(member.id);
 }
 
 // ── Document types ────────────────────────────────────────────────────────────
