@@ -9,6 +9,7 @@
   "tags": ["documents", "governance", "hoa", "bylaws", "minutes", "board"],
   "icon": "📚",
   "storage": "db",
+  "db_encryption": "off",
   "data_access": {
     "reads": ["family.members", "family.groups"],
     "writes": []
