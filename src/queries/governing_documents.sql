@@ -1,6 +1,3 @@
--- Governing documents (CC&Rs, bylaws, rules, architectural guidelines, etc.),
--- each joined to its current version's file metadata. Mirrors
--- groupGoverningDocs() in src/logic.js, grouped/ordered by doc_type.
 SELECT
   d.id,
   d.doc_type,

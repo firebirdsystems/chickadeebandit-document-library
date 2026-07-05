@@ -1,6 +1,3 @@
--- Meeting documents (agendas, minutes), newest meeting first, each joined to
--- its current version's file metadata. Mirrors sortMeetingDocs() in
--- src/logic.js, which sorts by meeting_date descending.
 SELECT
   d.id,
   d.doc_type,
