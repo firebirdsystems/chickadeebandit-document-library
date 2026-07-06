@@ -48,6 +48,9 @@
     "settings_table": "settings",
     "keys": ["board_group_id"]
   },
+  "file_acls": {
+    "write": { "require_group_setting": { "settings_table": "settings", "settings_key": "board_group_id" } }
+  },
   "ai_access": {
     "allowed": true,
     "mode": "read",
