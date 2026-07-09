@@ -1,0 +1,17 @@
+{
+  "scenarios": [
+    {
+      "name": "only the board group can add documents",
+      "members": { "member": "adult" },
+      "steps": [
+        {
+          "action": "db",
+          "as": "member",
+          "sql": "INSERT INTO app_document_library__documents (id, created_by, visibility) VALUES (?, ?, 'everyone')",
+          "params": ["doc1", "{{member}}"],
+          "expect": { "status": 403 }
+        }
+      ]
+    }
+  ]
+}
