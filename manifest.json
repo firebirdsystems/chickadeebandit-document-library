@@ -1,5 +1,6 @@
 {
   "id": "document-library",
+  "contexts": ["household", "shared_space"],
   "name": "Document Library",
   "version": "1.0.0",
   "description": "Versioned repository for governing documents — CC&Rs, bylaws, architectural guidelines, rules — plus a chronological archive of board meeting agendas and minutes. The Board uploads and versions files; everyone can always access the current governing docs.",
