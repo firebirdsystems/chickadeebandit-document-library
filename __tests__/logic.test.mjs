@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import {
   isBoard, docTypeLabel, nextVersionNumber,
-  groupGoverningDocs, sortMeetingDocs,
+  groupGoverningDocs, sortMeetingDocs, searchableFields,
 } from "../src/logic.js";
 import { testPrivilegedGateContract } from "./helpers/privileged-gate.mjs";
 
@@ -74,4 +74,15 @@ test("sorts meeting archive newest-first by meeting_date", () => {
     { id: "3", meeting_date: "2026-02-10" },
   ];
   expect(sortMeetingDocs(docs).map(d => d.id)).toEqual(["2", "3", "1"]);
+});
+
+describe("searchableFields", () => {
+  it("matches on the description, where a document is actually described", () => {
+    const fields = searchableFields({
+      title: "Rules & Regulations", description: "parking, pets, quiet hours",
+      doc_type: "rules", meeting_date: "",
+    });
+    expect(fields).toContain("parking, pets, quiet hours");
+    expect(fields).toContain("rules");
+  });
 });

@@ -159,6 +159,13 @@
     .empty   { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
     .empty-icon { font-size: 2.4rem; margin-bottom: 10px; }
     .loading { text-align: center; padding: 40px; color: var(--muted); }
+    .search-row { margin-bottom: 12px; }
+    .search-input {
+      width: 100%; border: 1.5px solid var(--border-mid, var(--border, #d1d5db));
+      border-radius: 8px; padding: 9px 11px; font: inherit;
+      background: var(--surface, var(--card, #fff)); color: var(--text, inherit);
+    }
+    .search-input:focus { outline: none; border-color: var(--accent, #6366f1); }
   </style>
 </head>
 <body>
@@ -168,10 +175,10 @@
 <input type="file" id="file-input" style="display:none" />
 
 <script type="module">
-import { hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper } from "/hub-sdk.js";
+import { hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper, searchMatch } from "/hub-sdk.js";
 import {
   isBoard, GOVERNING_DOC_TYPES, MEETING_DOC_TYPES, docTypesFor, docTypeLabel, nextVersionNumber,
-  isImage, isPreviewableImage, isPdf, fileIcon, formatBytes, accept, groupGoverningDocs, sortMeetingDocs,
+  isImage, isPreviewableImage, isPdf, fileIcon, formatBytes, accept, groupGoverningDocs, sortMeetingDocs, searchableFields,
 } from "./logic.js";
 
 // ── Globals ────────────────────────────────────────────────────────────────────
@@ -193,6 +200,7 @@ let documents    = [];
 let versions     = [];          // versions of the currently-open document, newest first
 let view         = "governing"; // "governing" | "meetings" | "detail" | "settings"
 let selectedDoc  = null;
+let searchQ = "";       // in-app search (see logic.js searchableFields)
 let modalEl      = null;
 let pendingFile  = null;        // File staged in the create/version modal before submit
 let uploading    = false;
@@ -291,6 +299,16 @@ async function loadVersions(documentId) {
 
 // ── Render ────────────────────────────────────────────────────────────────────
 
+// Re-render only the rows on each keystroke so the search box keeps focus.
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "search") return;
+  searchQ = e.target.value;
+  const el = document.getElementById("doc-list");
+  if (!el) return;
+  const board = amIBoard();
+  el.innerHTML = view === "meetings" ? renderMeetingList(board) : renderGoverningList(board);
+});
+
 function render() {
   const board = amIBoard();
   document.getElementById("root").innerHTML = `
@@ -340,16 +358,18 @@ function renderBoardNotice() {
   </div>`;
 }
 
-function renderGoverning(board) {
-  const docs = documents.filter(d => d.category === "governing");
-  const groupsByType = groupGoverningDocs(docs);
+// Text search runs before the category grouping/sorting so both tabs narrow
+// the same way.
+function matchingDocs(category) {
+  const docs = documents.filter(d => d.category === category);
+  return searchQ ? docs.filter(d => searchMatch(searchQ, searchableFields(d))) : docs;
+}
 
+// The two tab bodies each keep their rows in a #doc-list container so a
+// keystroke swaps only the rows, leaving the search box (and its focus) alone.
+function renderGoverningList(board) {
+  const groupsByType = groupGoverningDocs(matchingDocs("governing"));
   return `
-    ${renderBoardNotice()}
-    <div class="section-row">
-      <div class="section-title" style="margin:0">Governing Documents</div>
-      ${board ? `<button class="btn btn-primary btn-sm" onclick="openDocumentModal('governing')">+ Add Document</button>` : ""}
-    </div>
     ${groupsByType.length ? groupsByType.map(g => `
       <div class="card">
         <div class="section-title">${esc(g.type.label)}</div>
@@ -358,31 +378,49 @@ function renderGoverning(board) {
     `).join("") : `
       <div class="card"><div class="empty">
         <div class="empty-icon">📋</div>
-        <p>No governing documents yet.${board ? "<br>Add CC&Rs, bylaws, rules, or guidelines above." : ""}</p>
+        <p>${searchQ ? `No governing documents match "${esc(searchQ)}".` : `No governing documents yet.${board ? "<br>Add CC&Rs, bylaws, rules, or guidelines above." : ""}`}</p>
       </div></div>
     `}
   `;
 }
 
+function renderGoverning(board) {
+  return `
+    ${renderBoardNotice()}
+    <div class="section-row">
+      <div class="section-title" style="margin:0">Governing Documents</div>
+      ${board ? `<button class="btn btn-primary btn-sm" onclick="openDocumentModal('governing')">+ Add Document</button>` : ""}
+    </div>
+    ${documents.some(d => d.category === "governing") ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search documents…" aria-label="Search documents" value="${esc(searchQ)}" /></div>` : ""}
+    <div id="doc-list">${renderGoverningList(board)}</div>
+  `;
+}
+
 // ── View: Meeting archive ─────────────────────────────────────────────────────
 
-function renderMeetings(board) {
-  const docs = sortMeetingDocs(documents.filter(d => d.category === "meeting"));
+function renderMeetingList(board) {
+  const docs = sortMeetingDocs(matchingDocs("meeting"));
+  return `
+    <div class="card">
+      ${docs.length ? docs.map(d => renderDocRow(d, true)).join("") : `
+        <div class="empty">
+          <div class="empty-icon">🗓️</div>
+          <p>${searchQ ? `No meeting records match "${esc(searchQ)}".` : `No meeting records yet.${board ? "<br>Add an agenda or set of minutes above." : ""}`}</p>
+        </div>
+      `}
+    </div>
+  `;
+}
 
+function renderMeetings(board) {
   return `
     ${renderBoardNotice()}
     <div class="section-row">
       <div class="section-title" style="margin:0">Meeting Archive</div>
       ${board ? `<button class="btn btn-primary btn-sm" onclick="openDocumentModal('meeting')">+ Add Record</button>` : ""}
     </div>
-    <div class="card">
-      ${docs.length ? docs.map(d => renderDocRow(d, true)).join("") : `
-        <div class="empty">
-          <div class="empty-icon">🗓️</div>
-          <p>No meeting records yet.${board ? "<br>Add an agenda or set of minutes above." : ""}</p>
-        </div>
-      `}
-    </div>
+    ${documents.some(d => d.category === "meeting") ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search meeting records…" aria-label="Search meeting records" value="${esc(searchQ)}" /></div>` : ""}
+    <div id="doc-list">${renderMeetingList(board)}</div>
   `;
 }
 

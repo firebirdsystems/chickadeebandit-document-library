@@ -120,3 +120,12 @@ export function groupGoverningDocs(docs) {
 export function sortMeetingDocs(docs) {
   return [...docs].sort((a, b) => (b.meeting_date ?? "").localeCompare(a.meeting_date ?? ""));
 }
+
+/**
+ * Fields the in-app search matches against (see hub-sdk `searchMatch`).
+ * The description and document type both count — "the parking rule"
+ * is in the body of a document, not usually in its filed title.
+ */
+export function searchableFields(item) {
+  return [item.title, item.description, item.doc_type, item.meeting_date];
+}
