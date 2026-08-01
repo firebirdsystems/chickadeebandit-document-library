@@ -19,6 +19,11 @@
     "default_audience": "everyone",
     "requires_approval": false
   },
+  "member_references": {
+    "documents": { "column": "created_by", "on_removed": "keep" },
+    "document_versions": { "column": "uploaded_by", "on_removed": "keep" }
+  },
+  "resource_limits": { "max_db_bytes": 209715200 },
   "nav": { "label": "Library" },
   "row_policies": {
     "documents": {
