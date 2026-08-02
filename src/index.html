@@ -190,6 +190,23 @@ const IS_ADMIN = window.__IS_ADMIN ?? false;
 const ADMIN_CONFIG = window.__ADMIN_CONFIG_URL ?? "";
 const files   = createFilesHelper(window.__FILES_URL ?? "");
 const db      = createDbHelper(DB);
+const EVENTS  = window.__EVENTS_URL ?? "";
+
+// Best-effort publish onto the household event bus. Only metadata travels — the
+// document bytes stay behind the file ACL, and every document this app writes is
+// visibility 'everyone', so the bus audience matches who can read the row.
+async function publishEvent(type, subjectId, payload = {}) {
+  if (!EVENTS) return;
+  try {
+    await fetch(EVENTS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, subject_id: subjectId, payload }),
+    });
+  } catch {
+    // The row is already written; a failed publish is not fatal.
+  }
+}
 
 // ── State ──────────────────────────────────────────────────────────────────────
 let members      = [];
@@ -715,6 +732,12 @@ window.submitDocument = async function(category, existingId) {
        VALUES (?, ?, 1, ?, ?, ?, ?, '', ?, ?)`,
       [verId, docId, result.id, pendingFile.name, pendingFile.type, pendingFile.size, ME?.id ?? "", now]
     );
+    await publishEvent("document.published", docId, {
+      title,
+      category,
+      doc_type: docType,
+      meeting_date: meetingDate || null,
+    });
     closeModal();
     await loadDocuments();
     render();
@@ -773,6 +796,14 @@ window.submitVersion = async function(documentId) {
       `UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=?`,
       [versionNumber, now, documentId]
     );
+    // Only a NEW version is a revision — editing a document's title or meeting
+    // date leaves the governing text unchanged and publishes nothing.
+    await publishEvent("document.revised", documentId, {
+      title: d.title,
+      category: d.category,
+      doc_type: d.doc_type,
+      version_number: versionNumber,
+    });
     closeModal();
     d.current_version = versionNumber;
     d.updated_at = now;

@@ -54,6 +54,35 @@
     "settings_table": "settings",
     "keys": ["board_group_id"]
   },
+  "agenda": {
+    "kind": "event",
+    "label": "Meeting",
+    "source": {
+      "kind": "sql",
+      "query": "SELECT id AS id, title AS title, NULLIF(description, '') AS subtitle, meeting_date AS when_at FROM app_document_library__documents WHERE category = 'meeting' AND doc_type = 'agenda' AND meeting_date = :today LIMIT 10"
+    }
+  },
+  "glance": {
+    "source": {
+      "kind": "sql",
+      "query": "SELECT COUNT(*) AS n FROM app_document_library__documents WHERE category = 'meeting' AND doc_type = 'agenda' AND meeting_date >= :today AND meeting_date <= date(:today, '+13 days') LIMIT 1"
+    },
+    "display": {
+      "template": "badge",
+      "count": "n",
+      "label": "meetings in the next two weeks",
+      "severity": "info"
+    }
+  },
+  "publishes": ["document.published", "document.revised"],
+  "publish_acls": {
+    "document.published": {
+      "require_group_setting": { "settings_table": "settings", "settings_key": "board_group_id" }
+    },
+    "document.revised": {
+      "require_group_setting": { "settings_table": "settings", "settings_key": "board_group_id" }
+    }
+  },
   "file_acls": {
     "write": { "require_group_setting": { "settings_table": "settings", "settings_key": "board_group_id" } }
   },
