@@ -822,11 +822,16 @@ window.deleteDocument = async function(documentId) {
   if (!d) return;
   if (!await hubConfirm({ message: `Delete "${d.title}"?`, description: "All versions and their files will be permanently removed.", confirmLabel: "Delete", destructive: true })) return;
 
-  await loadVersions(documentId);
+  // Each version's file goes with its row: `manifest.delete_file_columns` has
+  // the hub read `file_id` off the doomed version rows and queue the R2 reclaim
+  // in the same transaction. The `versions.map(... files.delete ...)` this
+  // replaces fired against a list this tab happened to have loaded, and did so
+  // concurrently with the DELETE that removed the rows naming those files — so
+  // an interrupted request leaked bytes nothing could name, and a version
+  // another member added since was never in the list to begin with.
   await Promise.all([
     db(`DELETE FROM app_document_library__document_versions WHERE document_id=?`, [documentId]),
     db(`DELETE FROM app_document_library__documents WHERE id=?`, [documentId]),
-    ...versions.map(v => v.file_id ? files.delete(v.file_id).catch(() => {}) : Promise.resolve()),
   ]);
   documents = documents.filter(x => x.id !== documentId);
   view = d.category === "meeting" ? "meetings" : "governing";

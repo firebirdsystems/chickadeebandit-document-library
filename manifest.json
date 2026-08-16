@@ -1,18 +1,31 @@
 {
   "id": "document-library",
-  "contexts": ["household", "shared_space"],
+  "contexts": [
+    "household",
+    "shared_space"
+  ],
   "name": "Document Library",
-  "version": "1.0.0",
-  "description": "Versioned repository for governing documents — CC&Rs, bylaws, architectural guidelines, rules — plus a chronological archive of board meeting agendas and minutes. The Board uploads and versions files; everyone can always access the current governing docs.",
+  "version": "1.1.0",
+  "description": "Versioned repository for governing documents \u2014 CC&Rs, bylaws, architectural guidelines, rules \u2014 plus a chronological archive of board meeting agendas and minutes. The Board uploads and versions files; everyone can always access the current governing docs.",
   "entrypoint": "index.html",
   "runtime": "static",
   "category": "organization",
-  "tags": ["documents", "governance", "hoa", "bylaws", "minutes", "board"],
-  "icon": "📚",
+  "tags": [
+    "documents",
+    "governance",
+    "hoa",
+    "bylaws",
+    "minutes",
+    "board"
+  ],
+  "icon": "\ud83d\udcda",
   "storage": "db",
   "db_encryption": "off",
   "data_access": {
-    "reads": ["family.members", "family.groups"],
+    "reads": [
+      "family.members",
+      "family.groups"
+    ],
     "writes": []
   },
   "permissions": {
@@ -20,21 +33,38 @@
     "requires_approval": false
   },
   "member_references": {
-    "documents": { "column": "created_by", "on_removed": "keep" },
-    "document_versions": { "column": "uploaded_by", "on_removed": "keep" }
+    "documents": {
+      "column": "created_by",
+      "on_removed": "keep"
+    },
+    "document_versions": {
+      "column": "uploaded_by",
+      "on_removed": "keep"
+    }
   },
-  "resource_limits": { "max_db_bytes": 209715200 },
-  "nav": { "label": "Library" },
+  "resource_limits": {
+    "max_db_bytes": 209715200
+  },
+  "nav": {
+    "label": "Library"
+  },
   "row_policies": {
     "documents": {
       "kind": "owner_or_visibility",
       "member_column": "created_by",
       "visibility_column": "visibility",
-      "everyone_values": ["everyone"],
+      "everyone_values": [
+        "everyone"
+      ],
       "adult_values": [],
       "write_owner_only": true,
       "insert_privileged_only": true,
-      "privileged_groups": [{ "settings_table": "settings", "settings_key": "board_group_id" }]
+      "privileged_groups": [
+        {
+          "settings_table": "settings",
+          "settings_key": "board_group_id"
+        }
+      ]
     },
     "document_versions": {
       "kind": "inherit_visibility",
@@ -50,9 +80,16 @@
       "kind": "adult_only"
     }
   },
+  "delete_file_columns": {
+    "document_versions": [
+      "file_id"
+    ]
+  },
   "admin_config": {
     "settings_table": "settings",
-    "keys": ["board_group_id"]
+    "keys": [
+      "board_group_id"
+    ]
   },
   "agenda": {
     "kind": "event",
@@ -74,21 +111,38 @@
       "severity": "info"
     }
   },
-  "publishes": ["document.published", "document.revised"],
+  "publishes": [
+    "document.published",
+    "document.revised"
+  ],
   "publish_acls": {
     "document.published": {
-      "require_group_setting": { "settings_table": "settings", "settings_key": "board_group_id" }
+      "require_group_setting": {
+        "settings_table": "settings",
+        "settings_key": "board_group_id"
+      }
     },
     "document.revised": {
-      "require_group_setting": { "settings_table": "settings", "settings_key": "board_group_id" }
+      "require_group_setting": {
+        "settings_table": "settings",
+        "settings_key": "board_group_id"
+      }
     }
   },
   "file_acls": {
-    "write": { "require_group_setting": { "settings_table": "settings", "settings_key": "board_group_id" } }
+    "write": {
+      "require_group_setting": {
+        "settings_table": "settings",
+        "settings_key": "board_group_id"
+      }
+    }
   },
   "ai_access": {
     "allowed": true,
     "mode": "read",
-    "db_exports": ["governing_documents", "meeting_archive"]
+    "db_exports": [
+      "governing_documents",
+      "meeting_archive"
+    ]
   }
 }
