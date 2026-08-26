@@ -20,6 +20,10 @@
   ],
   "icon": "\ud83d\udcda",
   "storage": "db",
+  "preload": {
+    "settings": {"sql": "SELECT value AS board_group_id FROM app_document_library__settings WHERE key = 'board_group_id' LIMIT 1"},
+    "documents": {"sql": "SELECT * FROM app_document_library__documents ORDER BY title"}
+  },
   "db_encryption": "off",
   "data_access": {
     "reads": [
