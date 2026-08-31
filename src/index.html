@@ -406,7 +406,7 @@ function renderGoverning(board) {
     ${renderBoardNotice()}
     <div class="section-row">
       <div class="section-title" style="margin:0">Governing Documents</div>
-      ${board ? `<button class="btn btn-primary btn-sm" onclick="openDocumentModal('governing')">+ Add Document</button>` : ""}
+      ${board ? `<button class="btn btn-primary btn-sm" data-testid="add-document" onclick="openDocumentModal('governing')">+ Add Document</button>` : ""}
     </div>
     ${documents.some(d => d.category === "governing") ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search documents…" aria-label="Search documents" value="${esc(searchQ)}" /></div>` : ""}
     <div id="doc-list">${renderGoverningList(board)}</div>
@@ -445,7 +445,7 @@ function renderDocRow(d, showDate = false) {
   const meta = showDate
     ? `${docTypeLabel(d.category, d.doc_type)}${d.meeting_date ? ` · ${fmtDate(d.meeting_date)}` : ""}`
     : `v${d.current_version} · Updated ${formatRelativeDate(d.updated_at)}`;
-  return `<div class="doc-row" onclick="openDetail('${esc(d.id)}')">
+  return `<div class="doc-row" data-testid="doc-row" data-doc-id="${esc(d.id)}" onclick="openDetail('${esc(d.id)}')">
     <div class="doc-icon">${docCategoryIcon(d)}</div>
     <div class="doc-info">
       <div class="doc-title">${esc(d.title)}</div>
@@ -469,7 +469,7 @@ function renderDetail(board) {
 
   return `
     <button class="back-btn" onclick="setView('${d.category === "meeting" ? "meetings" : "governing"}')">← Back</button>
-    <div class="card">
+    <div class="card" data-testid="doc-detail" data-doc-id="${esc(d.id)}">
       <div class="detail-header">
         <div class="detail-icon">${docCategoryIcon(d)}</div>
         <div>
@@ -496,7 +496,7 @@ function renderDetail(board) {
         </div>
       ` : `<p class="empty" style="padding:14px 0">No file uploaded for this document yet.</p>`}
       ${board ? `
-        <div class="detail-actions">
+        <div class="detail-actions" data-testid="doc-board-actions">
           <button class="btn btn-primary btn-sm" onclick="openVersionModal('${esc(d.id)}')">Upload New Version</button>
           <button class="btn btn-ghost btn-sm" onclick="openDocumentModal('${esc(d.category)}', '${esc(d.id)}')">Edit</button>
           <button class="btn btn-ghost btn-sm" onclick="deleteDocument('${esc(d.id)}')">Delete</button>

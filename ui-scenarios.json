@@ -1,0 +1,114 @@
+{
+  "scenarios": [
+    {
+      "name": "a document everyone can read offers its edit controls only to the configured board group",
+      "members": {
+        "viewer": "adult",
+        "other": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedGroup",
+          "group": "social",
+          "name": "Social Committee",
+          "members": [
+            "other"
+          ]
+        },
+        {
+          "action": "seedGroup",
+          "group": "board",
+          "name": "Board of Directors",
+          "members": [
+            "viewer"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)",
+          "params": [
+            "{{group:social}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, 'governing', ?, ?, ?, 1, 'everyone', ?, datetime('now'), datetime('now'))",
+          "params": [
+            "ui-doc",
+            "bylaws",
+            "Association bylaws",
+            "Adopted at the 2019 annual meeting.",
+            "{{other}}"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "viewer"
+        },
+        {
+          "action": "expectVisible",
+          "as": "viewer",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "viewer",
+          "selector": "[data-testid=\"add-document\"]",
+          "count": 0
+        },
+        {
+          "action": "click",
+          "as": "viewer",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "viewer",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "viewer",
+          "selector": "[data-testid=\"doc-board-actions\"]",
+          "count": 0
+        },
+        {
+          "action": "seedRaw",
+          "sql": "UPDATE app_document_library__settings SET value = ? WHERE key = 'board_group_id'",
+          "params": [
+            "{{group:board}}"
+          ]
+        },
+        {
+          "action": "reload",
+          "as": "viewer"
+        },
+        {
+          "action": "expectVisible",
+          "as": "viewer",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "viewer",
+          "selector": "[data-testid=\"add-document\"]"
+        },
+        {
+          "action": "click",
+          "as": "viewer",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "viewer",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "viewer",
+          "selector": "[data-testid=\"doc-board-actions\"]"
+        }
+      ]
+    }
+  ]
+}
