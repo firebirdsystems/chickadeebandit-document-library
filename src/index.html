@@ -175,11 +175,16 @@
 <input type="file" id="file-input" style="display:none" />
 
 <script type="module">
-import { hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper, searchMatch } from "/hub-sdk.js";
+import {
+  hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper, searchMatch,
+  createShareHelper, activeShareLinks, SHARE_EXPIRY_CHOICES, DEFAULT_SHARE_EXPIRY_HOURS,
+} from "/hub-sdk.js";
 import {
   isBoard, GOVERNING_DOC_TYPES, MEETING_DOC_TYPES, docTypesFor, docTypeLabel, nextVersionNumber,
   isImage, isPreviewableImage, isPdf, fileIcon, formatBytes, accept, groupGoverningDocs, sortMeetingDocs, searchableFields,
+  canShareDocument,
 } from "./logic.js";
+import { createShareUi, createOverlayView } from "./share.js";
 
 // ── Globals ────────────────────────────────────────────────────────────────────
 const CONTEXT = window.__CONTEXT_URL ?? "";
@@ -191,6 +196,32 @@ const ADMIN_CONFIG = window.__ADMIN_CONFIG_URL ?? "";
 const files   = createFilesHelper(window.__FILES_URL ?? "");
 const db      = createDbHelper(DB);
 const EVENTS  = window.__EVENTS_URL ?? "";
+
+// External share links (manifest.shareable.document). The hub injects the URLs
+// only when the manifest declares `shareable`, and mints for adults only; whether
+// this household or space allows it at all is answered by the panel's first
+// read, which it reports rather than guessing here. The mint does NOT check
+// visible_where, so the button itself is gated per document (canShareDocument).
+const share = createShareHelper(window.__SHARE_CREATE_URL, window.__SHARE_REVOKE_URL, window.__SHARE_LIST_URL);
+const CAN_SHARE = share.enabled && isAdult(ME);
+const shareView = createOverlayView(document);
+const shareUi = createShareUi({
+  share,
+  itemType: "document",
+  noun: "document",
+  scopeHtml: () => "The page shows the document’s title, type and description, and lets anyone with the link download its current version. Earlier versions and their history stay here. Anyone who gets the link can read it.",
+  esc,
+  confirm: (message, opts) => hubConfirm({ message, ...opts, destructive: true }),
+  writeText: (text) => navigator.clipboard.writeText(text),
+  activeLinks: activeShareLinks,
+  expiryChoices: SHARE_EXPIRY_CHOICES,
+  defaultExpiryHours: DEFAULT_SHARE_EXPIRY_HOURS,
+  getMe: () => ME,
+  isAdmin: () => IS_ADMIN,
+  memberName: (id) => memberMap.get(id)?.name ?? "",
+  view: shareView,
+});
+shareView.bind(shareUi);
 
 // Best-effort publish onto the household event bus. Only metadata travels — the
 // document bytes stay behind the file ACL, and every document this app writes is
@@ -492,6 +523,7 @@ function renderDetail(board) {
           <div class="version-actions">
             <button class="btn btn-ghost btn-sm" onclick="previewVersion('${esc(current.id)}')">Preview</button>
             <button class="btn btn-ghost btn-sm" onclick="downloadVersion('${esc(current.id)}')">↓ Download</button>
+            ${CAN_SHARE && canShareDocument(d) ? `<button class="btn btn-ghost btn-sm" data-testid="document-share" onclick="shareDocument('${esc(d.id)}')">Share</button>` : ""}
           </div>
         </div>
       ` : `<p class="empty" style="padding:14px 0">No file uploaded for this document yet.</p>`}
@@ -573,6 +605,11 @@ window.openDetail = async function(id) {
   render();
   await loadVersions(id);
   if (selectedDoc?.id === id) render();
+};
+
+window.shareDocument = function(id) {
+  const d = documents.find(x => x.id === id);
+  if (d && canShareDocument(d)) shareUi.open({ id: d.id, title: d.title });
 };
 
 // ── Modal scaffold ────────────────────────────────────────────────────────────

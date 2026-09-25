@@ -49,6 +49,22 @@ export function docTypeLabel(category, docType) {
   return docTypesFor(category).find(t => t.id === docType)?.label ?? "Other";
 }
 
+// ── Share links ───────────────────────────────────────────────────────────────
+
+/**
+ * Whether a document may be offered for an external share link. The hub's mint
+ * only checks the row exists; `shareable.document.visible_where` (visibility
+ * "everyone") is enforced on READ, so a link to any other document would mint
+ * and then 404. Offer it only for documents everyone here can already read, and
+ * only once there is a version for the page to offer as a download. The caller
+ * still ANDs this with share.enabled and "the viewer is an adult".
+ *
+ * @param {object|null} doc  a `documents` row
+ */
+export function canShareDocument(doc) {
+  return !!doc && doc.visibility === "everyone" && (doc.current_version ?? 0) >= 1;
+}
+
 // ── Versioning ────────────────────────────────────────────────────────────────
 
 export function nextVersionNumber(currentVersion) {

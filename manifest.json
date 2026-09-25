@@ -25,6 +25,7 @@
     "documents": {"sql": "SELECT * FROM app_document_library__documents ORDER BY title"}
   },
   "db_encryption": "off",
+  "db_plaintext_columns": ["version_number"],
   "data_access": {
     "reads": [
       "family.members",
@@ -82,6 +83,34 @@
     },
     "app_settings": {
       "kind": "adult_only"
+    }
+  },
+  "shareable": {
+    "document": {
+      "table": "documents",
+      "title_column": "title",
+      "columns": [
+        { "column": "doc_type", "label": "Type",
+          "value_labels": { "ccr": "CC&Rs", "bylaws": "Bylaws", "rules": "Rules & Regulations", "architectural": "Architectural Guidelines", "other": "Other", "agenda": "Agenda", "minutes": "Minutes" } },
+        { "column": "description", "label": "About", "format": "multiline" },
+        { "column": "meeting_date", "label": "Meeting date", "format": "date" },
+        { "column": "updated_at", "label": "Last updated", "format": "date" }
+      ],
+      "visible_where": { "column": "visibility", "values": ["everyone"] },
+      "feed": {
+        "label": "Current version",
+        "table": "document_versions",
+        "fk_column": "document_id",
+        "columns": [
+          { "column": "version_number", "label": "Version", "format": "number", "role": "detail" },
+          { "column": "uploaded_at", "label": "Uploaded", "format": "date", "role": "detail" },
+          { "column": "change_note", "label": "What changed", "format": "multiline", "role": "body" }
+        ],
+        "files_column": "file_id",
+        "order_column": "version_number",
+        "order": "newest",
+        "max_items": 1
+      }
     }
   },
   "delete_file_columns": {
