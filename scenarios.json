@@ -12,6 +12,197 @@
           "expect": { "status": 403 }
         }
       ]
+    },
+    {
+      "name": "a child can read shared documents but cannot add documents or versions",
+      "members": { "kid": "child", "parent": "adult" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__documents (id, title, visibility, created_by, created_at, updated_at) VALUES ('doc1', 'Bylaws', 'everyone', ?, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+          "params": ["{{parent}}"]
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "SELECT id FROM app_document_library__documents",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "doc1" }] }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "INSERT INTO app_document_library__documents (id, title, visibility, created_by, created_at, updated_at) VALUES ('doc2', 'Kid doc', 'everyone', ?, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+          "params": ["{{kid}}"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES ('v2', 'doc1', 2, 'f1', 'bylaws.pdf', 'application/pdf', 10, ?, '2026-01-02T00:00:00Z')",
+          "params": ["{{kid}}"],
+          "expect": { "status": 403 }
+        }
+      ]
+    },
+    {
+      "name": "a child cannot write the adult-only app settings",
+      "members": { "kid": "child", "parent": "adult" },
+      "steps": [
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "INSERT INTO app_document_library__app_settings (singleton_key, board_group_id) VALUES ('settings', 'g-kid')",
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_document_library__app_settings (singleton_key, board_group_id) VALUES ('settings', 'g1')",
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "UPDATE app_document_library__app_settings SET board_group_id = 'g-kid'",
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT board_group_id FROM app_document_library__app_settings",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "board_group_id": "g1" }] }
+        }
+      ]
+    },
+    {
+      "name": "a board-group member adds a document and its first version; a plain adult outside the group is refused both",
+      "members": { "board": "adult", "member": "adult" },
+      "steps": [
+        { "action": "seedGroup", "group": "board", "name": "Board", "members": ["board"] },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)",
+          "params": ["{{group:board}}"]
+        },
+        {
+          "action": "db",
+          "as": "board",
+          "sql": "INSERT INTO app_document_library__documents (id, title, visibility, created_by, created_at, updated_at) VALUES (?, ?, 'everyone', ?, ?, ?)",
+          "params": ["doc1", "Bylaws", "{{board}}", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "member",
+          "sql": "INSERT INTO app_document_library__documents (id, title, visibility, created_by, created_at, updated_at) VALUES (?, ?, 'everyone', ?, ?, ?)",
+          "params": ["doc2", "Fake bylaws", "{{member}}", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "board",
+          "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?)",
+          "params": [
+            "ver1",
+            "doc1",
+            "file-1",
+            "bylaws.pdf",
+            "application/pdf",
+            1024,
+            "{{board}}",
+            "2026-01-01T00:00:00Z"
+          ],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "member",
+          "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, 2, ?, ?, ?, ?, ?, ?)",
+          "params": [
+            "ver2",
+            "doc1",
+            "file-2",
+            "bylaws-v2.pdf",
+            "application/pdf",
+            2048,
+            "{{member}}",
+            "2026-01-02T00:00:00Z"
+          ],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "member",
+          "sql": "SELECT d.id, v.version_number FROM app_document_library__documents d JOIN app_document_library__document_versions v ON v.document_id = d.id",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "doc1", "version_number": 1 }] }
+        }
+      ]
+    },
+    {
+      "name": "a board-group member edits and removes a document another board member added; a plain adult outside the group changes nothing",
+      "members": { "author": "adult", "board": "adult", "member": "adult" },
+      "steps": [
+        { "action": "seedGroup", "group": "board", "name": "Board", "members": ["author", "board"] },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)",
+          "params": ["{{group:board}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__documents (id, title, visibility, created_by, created_at, updated_at) VALUES ('doc1', 'Budget 2026', 'everyone', ?, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+          "params": ["{{author}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__documents (id, title, visibility, created_by, created_at, updated_at) VALUES ('doc2', 'Old rules', 'everyone', ?, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+          "params": ["{{author}}"]
+        },
+        {
+          "action": "db",
+          "as": "member",
+          "sql": "UPDATE app_document_library__documents SET title = 'tampered' WHERE id = ?",
+          "params": ["doc1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "member",
+          "sql": "DELETE FROM app_document_library__documents WHERE id = ?",
+          "params": ["doc2"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "author",
+          "sql": "SELECT id, title FROM app_document_library__documents ORDER BY id",
+          "expect": {
+            "status": 200,
+            "rowCount": 2,
+            "rowsContain": [{ "id": "doc1", "title": "Budget 2026" }, { "id": "doc2", "title": "Old rules" }]
+          }
+        },
+        {
+          "action": "db",
+          "as": "board",
+          "sql": "UPDATE app_document_library__documents SET title = 'Budget 2026 (final)' WHERE id = ?",
+          "params": ["doc1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "board",
+          "sql": "DELETE FROM app_document_library__documents WHERE id = ?",
+          "params": ["doc2"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "author",
+          "sql": "SELECT id, title FROM app_document_library__documents",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "doc1", "title": "Budget 2026 (final)" }] }
+        }
+      ]
     }
   ]
 }
