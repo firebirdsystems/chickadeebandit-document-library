@@ -157,7 +157,7 @@
     .preview-body .no-preview { color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 40px; }
 
     .empty   { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
-    .empty-icon { font-size: 2.4rem; margin-bottom: 10px; }
+    .empty-icon { margin-bottom: 10px; }
     .loading { text-align: center; padding: 40px; color: var(--muted); }
     .search-row { margin-bottom: 12px; }
     .search-input {
@@ -178,10 +178,11 @@
 import {
   hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, hubConfirm, createFilesHelper, createDbHelper, searchMatch,
   createShareHelper, activeShareLinks, SHARE_EXPIRY_CHOICES, DEFAULT_SHARE_EXPIRY_HOURS,
+  glyph, chickadee,
 } from "/hub-sdk.js";
 import {
   isBoard, GOVERNING_DOC_TYPES, MEETING_DOC_TYPES, docTypesFor, docTypeLabel, nextVersionNumber,
-  isImage, isPreviewableImage, isPdf, fileIcon, formatBytes, accept, groupGoverningDocs, sortMeetingDocs, searchableFields,
+  isImage, isPreviewableImage, isPdf, fileGlyph, formatBytes, accept, groupGoverningDocs, sortMeetingDocs, searchableFields,
   canShareDocument,
 } from "./logic.js";
 import { createShareUi, createOverlayView } from "./share.js";
@@ -211,6 +212,7 @@ const shareUi = createShareUi({
   noun: "document",
   scopeHtml: () => "The page shows the document’s title, type and description, and lets anyone with the link download its current version. Earlier versions and their history stay here. Anyone who gets the link can read it.",
   esc,
+  glyph,
   confirm: (message, opts) => hubConfirm({ message, ...opts, destructive: true }),
   writeText: (text) => navigator.clipboard.writeText(text),
   activeLinks: activeShareLinks,
@@ -373,10 +375,10 @@ function render() {
 function renderHeader(board) {
   return `<header>
     <div>
-      <h1>📚 Document Library</h1>
+      <h1>${glyph("books")} Document Library</h1>
       ${board ? `<div class="sub">Board access</div>` : ""}
     </div>
-    ${IS_ADMIN ? `<button class="btn-icon" onclick="setView('settings')" title="Board settings">⚙️</button>` : ""}
+    ${IS_ADMIN ? `<button class="btn-icon" onclick="setView('settings')" title="Board settings" aria-label="Board settings">${glyph("gear")}</button>` : ""}
   </header>`;
 }
 
@@ -400,7 +402,7 @@ function renderBoardNotice() {
     <div style="font-size:.85rem;color:#92400e">
       <strong>No board configured yet.</strong>
       ${IS_ADMIN
-        ? "Choose a Board group in settings (⚙️ top-right) before documents can be added or edited."
+        ? `Choose a Board group in settings (${glyph("gear")} top-right) before documents can be added or edited.`
         : "An admin must choose a Board group before documents can be added or edited."}
     </div>
   </div>`;
@@ -425,7 +427,7 @@ function renderGoverningList(board) {
       </div>
     `).join("") : `
       <div class="card"><div class="empty">
-        <div class="empty-icon">📋</div>
+        <div class="empty-icon">${chickadee(searchQ ? "searching" : "nest")}</div>
         <p>${searchQ ? `No governing documents match "${esc(searchQ)}".` : `No governing documents yet.${board ? "<br>Add CC&Rs, bylaws, rules, or guidelines above." : ""}`}</p>
       </div></div>
     `}
@@ -452,7 +454,7 @@ function renderMeetingList(board) {
     <div class="card">
       ${docs.length ? docs.map(d => renderDocRow(d, true)).join("") : `
         <div class="empty">
-          <div class="empty-icon">🗓️</div>
+          <div class="empty-icon">${chickadee(searchQ ? "searching" : "nest")}</div>
           <p>${searchQ ? `No meeting records match "${esc(searchQ)}".` : `No meeting records yet.${board ? "<br>Add an agenda or set of minutes above." : ""}`}</p>
         </div>
       `}
@@ -487,8 +489,8 @@ function renderDocRow(d, showDate = false) {
 }
 
 function docCategoryIcon(d) {
-  if (d.category === "meeting") return d.doc_type === "agenda" ? "🗒️" : "📝";
-  return { ccr: "📜", bylaws: "⚖️", rules: "📋", architectural: "🏛️" }[d.doc_type] ?? "📄";
+  if (d.category === "meeting") return glyph(d.doc_type === "agenda" ? "agenda" : "note");
+  return glyph({ ccr: "signature", bylaws: "scales", rules: "checklist", architectural: "blueprint" }[d.doc_type] ?? "document");
 }
 
 // ── View: Document detail ─────────────────────────────────────────────────────
@@ -515,7 +517,7 @@ function renderDetail(board) {
       ${d.description ? `<div class="detail-desc">${esc(d.description)}</div>` : ""}
       ${current ? `
         <div class="version-row" style="margin-top:14px">
-          <div class="version-badge">${fileIcon(current.mime_type)}</div>
+          <div class="version-badge">${glyph(fileGlyph(current.mime_type))}</div>
           <div class="version-info">
             <div class="version-name">${esc(current.filename)}</div>
             <div class="version-meta">${formatBytes(current.size_bytes)} · Uploaded by ${esc(memberName(current.uploaded_by))} · ${formatRelativeDate(current.uploaded_at)}</div>
@@ -583,7 +585,7 @@ function renderSettings(board) {
         <select onchange="saveBoardGroup(this.value)">${groupOpts}</select>
       </div>
       ${!groups.length ? `<p class="form-hint">Create groups at <strong>Settings → Groups</strong>, then return here to choose which group has board access.</p>` : ""}
-      ${groups.length && !settings.board_group_id ? `<p class="form-hint" style="color:#92400e">⚠️ No board group is set yet — choose one above so documents can be added.</p>` : ""}
+      ${groups.length && !settings.board_group_id ? `<p class="form-hint" style="color:#92400e">${glyph("warning")} No board group is set yet — choose one above so documents can be added.</p>` : ""}
     </div>
   `;
 }
@@ -936,7 +938,7 @@ window.previewVersion = async function(versionId) {
       <div class="preview-header">
         <h3>${esc(v.filename)}</h3>
         <button id="preview-dl-btn" class="btn btn-ghost btn-sm" title="Download">↓ Download</button>
-        <button class="btn-icon" onclick="this.closest('.modal-backdrop').remove()">✕</button>
+        <button class="btn-icon" onclick="this.closest('.modal-backdrop').remove()" aria-label="Close">${glyph("close")}</button>
       </div>
       <div class="preview-body" id="preview-body-inner">
         <div class="no-preview"><p style="color:#94a3b8">Loading…</p></div>
@@ -974,7 +976,7 @@ window.previewVersion = async function(versionId) {
     await renderPdf(blobUrl, bodyEl);
   } else {
     bodyEl.innerHTML = `<div class="no-preview">
-      <div style="font-size:3rem;margin-bottom:12px">${fileIcon(v.mime_type)}</div>
+      <div style="font-size:3rem;margin-bottom:12px">${glyph(fileGlyph(v.mime_type))}</div>
       <p>No preview available</p>
     </div>`;
   }
