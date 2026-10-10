@@ -1,0 +1,1645 @@
+{
+ "groups": [
+  {
+   "key": "board",
+   "name": "Board of Directors",
+   "members": [
+    "{{me}}",
+    "{{partner}}"
+   ]
+  }
+ ],
+ "seed": [
+  {
+   "sql": "INSERT INTO app_document_library__settings (key, value) VALUES (?, ?)",
+   "params": [
+    "board_group_id",
+    "{{group:board}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-400 days'), strftime('%Y-%m-%dT12:00:00Z','now','-45 days'))",
+   "params": [
+    "perf-doc-01",
+    "governing",
+    "ccr",
+    "Declaration of Covenants, Conditions & Restrictions",
+    "The recorded declaration that governs every lot in the community.",
+    3,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-400 days'))",
+   "params": [
+    "perf-ver-001",
+    "perf-doc-01",
+    1,
+    "perf-file-001",
+    "declaration-of-covenants-conditions-restrictions-v1.pdf",
+    "application/pdf",
+    91919,
+    "Original recorded declaration",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-210 days'))",
+   "params": [
+    "perf-ver-002",
+    "perf-doc-01",
+    2,
+    "perf-file-002",
+    "declaration-of-covenants-conditions-restrictions-v2.pdf",
+    "application/pdf",
+    99838,
+    "Third amendment: short-term rental limits",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-45 days'))",
+   "params": [
+    "perf-ver-003",
+    "perf-doc-01",
+    3,
+    "perf-file-003",
+    "declaration-of-covenants-conditions-restrictions-v3.pdf",
+    "application/pdf",
+    107757,
+    "Fourth amendment: solar panel placement",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-200 days'), strftime('%Y-%m-%dT12:00:00Z','now','-44 days'))",
+   "params": [
+    "perf-doc-02",
+    "governing",
+    "ccr",
+    "CC&R Amendment Summary",
+    "Plain-language summary of each amendment since recording.",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-200 days'))",
+   "params": [
+    "perf-ver-004",
+    "perf-doc-02",
+    1,
+    "perf-file-004",
+    "cc-r-amendment-summary-v1.pdf",
+    "application/pdf",
+    115676,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-44 days'))",
+   "params": [
+    "perf-ver-005",
+    "perf-doc-02",
+    2,
+    "perf-file-005",
+    "cc-r-amendment-summary-v2.pdf",
+    "application/pdf",
+    123595,
+    "Added the fourth amendment",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-390 days'), strftime('%Y-%m-%dT12:00:00Z','now','-150 days'))",
+   "params": [
+    "perf-doc-03",
+    "governing",
+    "bylaws",
+    "Association Bylaws",
+    "How the board is elected, how meetings run, and how votes are counted.",
+    2,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-390 days'))",
+   "params": [
+    "perf-ver-006",
+    "perf-doc-03",
+    1,
+    "perf-file-006",
+    "association-bylaws-v1.pdf",
+    "application/pdf",
+    131514,
+    "Adopted bylaws",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-150 days'))",
+   "params": [
+    "perf-ver-007",
+    "perf-doc-03",
+    2,
+    "perf-file-007",
+    "association-bylaws-v2.pdf",
+    "application/pdf",
+    139433,
+    "Quorum lowered to 25 percent",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-300 days'), strftime('%Y-%m-%dT12:00:00Z','now','-30 days'))",
+   "params": [
+    "perf-doc-04",
+    "governing",
+    "bylaws",
+    "Election and Voting Procedures",
+    "Nomination timeline, ballot handling and proxy rules.",
+    3,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-300 days'))",
+   "params": [
+    "perf-ver-008",
+    "perf-doc-04",
+    1,
+    "perf-file-008",
+    "election-and-voting-procedures-v1.pdf",
+    "application/pdf",
+    147352,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-120 days'))",
+   "params": [
+    "perf-ver-009",
+    "perf-doc-04",
+    2,
+    "perf-file-009",
+    "election-and-voting-procedures-v2.pdf",
+    "application/pdf",
+    155271,
+    "Electronic ballots allowed",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-30 days'))",
+   "params": [
+    "perf-ver-010",
+    "perf-doc-04",
+    3,
+    "perf-file-010",
+    "election-and-voting-procedures-v3.pdf",
+    "application/pdf",
+    163190,
+    "Clarified proxy deadline",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-380 days'), strftime('%Y-%m-%dT12:00:00Z','now','-20 days'))",
+   "params": [
+    "perf-doc-05",
+    "governing",
+    "rules",
+    "Community Rules & Regulations",
+    "Day-to-day rules for owners, tenants and guests.",
+    4,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-380 days'))",
+   "params": [
+    "perf-ver-011",
+    "perf-doc-05",
+    1,
+    "perf-file-011",
+    "community-rules-regulations-v1.pdf",
+    "application/pdf",
+    171109,
+    "First edition",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-260 days'))",
+   "params": [
+    "perf-ver-012",
+    "perf-doc-05",
+    2,
+    "perf-file-012",
+    "community-rules-regulations-v2.pdf",
+    "application/pdf",
+    179028,
+    "Quiet hours updated",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-140 days'))",
+   "params": [
+    "perf-ver-013",
+    "perf-doc-05",
+    3,
+    "perf-file-013",
+    "community-rules-regulations-v3.pdf",
+    "application/pdf",
+    186947,
+    "Pet policy rewritten",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-20 days'))",
+   "params": [
+    "perf-ver-014",
+    "perf-doc-05",
+    4,
+    "perf-file-014",
+    "community-rules-regulations-v4.pdf",
+    "application/pdf",
+    194866,
+    "Guest parking passes",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-330 days'), strftime('%Y-%m-%dT12:00:00Z','now','-95 days'))",
+   "params": [
+    "perf-doc-06",
+    "governing",
+    "rules",
+    "Pool and Clubhouse Rules",
+    "Hours, guest limits and reservation rules for the shared amenities.",
+    2,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-330 days'))",
+   "params": [
+    "perf-ver-015",
+    "perf-doc-06",
+    1,
+    "perf-file-015",
+    "pool-and-clubhouse-rules-v1.pdf",
+    "application/pdf",
+    202785,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-95 days'))",
+   "params": [
+    "perf-ver-016",
+    "perf-doc-06",
+    2,
+    "perf-file-016",
+    "pool-and-clubhouse-rules-v2.pdf",
+    "application/pdf",
+    210704,
+    "Summer hours extended",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-280 days'), strftime('%Y-%m-%dT12:00:00Z','now','-60 days'))",
+   "params": [
+    "perf-doc-07",
+    "governing",
+    "rules",
+    "Parking and Towing Policy",
+    "Where guests may park and when a vehicle can be towed.",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-280 days'))",
+   "params": [
+    "perf-ver-017",
+    "perf-doc-07",
+    1,
+    "perf-file-017",
+    "parking-and-towing-policy-v1.pdf",
+    "application/pdf",
+    218623,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-60 days'))",
+   "params": [
+    "perf-ver-018",
+    "perf-doc-07",
+    2,
+    "perf-file-018",
+    "parking-and-towing-policy-v2.pdf",
+    "application/pdf",
+    226542,
+    "Added EV charging bays",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-270 days'), strftime('%Y-%m-%dT12:00:00Z','now','-270 days'))",
+   "params": [
+    "perf-doc-08",
+    "governing",
+    "rules",
+    "Fine Schedule",
+    "Fines the board may levy and the hearing process.",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-270 days'))",
+   "params": [
+    "perf-ver-019",
+    "perf-doc-08",
+    1,
+    "perf-file-019",
+    "fine-schedule-v1.pdf",
+    "application/pdf",
+    234461,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-180 days'), strftime('%Y-%m-%dT12:00:00Z','now','-15 days'))",
+   "params": [
+    "perf-doc-09",
+    "governing",
+    "rules",
+    "Trash and Recycling Guide",
+    "Pickup days, bin storage and bulk item requests.",
+    2,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-180 days'))",
+   "params": [
+    "perf-ver-020",
+    "perf-doc-09",
+    1,
+    "perf-file-020",
+    "trash-and-recycling-guide-v1.pdf",
+    "application/pdf",
+    242380,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-15 days'))",
+   "params": [
+    "perf-ver-021",
+    "perf-doc-09",
+    2,
+    "perf-file-021",
+    "trash-and-recycling-guide-v2.pdf",
+    "application/pdf",
+    250299,
+    "New hauler, new pickup days",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-370 days'), strftime('%Y-%m-%dT12:00:00Z','now','-50 days'))",
+   "params": [
+    "perf-doc-10",
+    "governing",
+    "architectural",
+    "Architectural Guidelines",
+    "What needs approval before you build, paint or plant.",
+    3,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-370 days'))",
+   "params": [
+    "perf-ver-022",
+    "perf-doc-10",
+    1,
+    "perf-file-022",
+    "architectural-guidelines-v1.pdf",
+    "application/pdf",
+    258218,
+    "Adopted guidelines",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-175 days'))",
+   "params": [
+    "perf-ver-023",
+    "perf-doc-10",
+    2,
+    "perf-file-023",
+    "architectural-guidelines-v2.pdf",
+    "application/pdf",
+    266137,
+    "Fence heights and materials",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-50 days'))",
+   "params": [
+    "perf-ver-024",
+    "perf-doc-10",
+    3,
+    "perf-file-024",
+    "architectural-guidelines-v3.pdf",
+    "application/pdf",
+    274056,
+    "Approved exterior color palette",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-170 days'), strftime('%Y-%m-%dT12:00:00Z','now','-49 days'))",
+   "params": [
+    "perf-doc-11",
+    "governing",
+    "architectural",
+    "Exterior Paint Palette",
+    "The approved body, trim and door colors.",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-170 days'))",
+   "params": [
+    "perf-ver-025",
+    "perf-doc-11",
+    1,
+    "perf-file-025",
+    "exterior-paint-palette-v1.pdf",
+    "application/pdf",
+    281975,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-49 days'))",
+   "params": [
+    "perf-ver-026",
+    "perf-doc-11",
+    2,
+    "perf-file-026",
+    "exterior-paint-palette-v2.pdf",
+    "application/pdf",
+    289894,
+    "Two new trim colors",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-240 days'), strftime('%Y-%m-%dT12:00:00Z','now','-80 days'))",
+   "params": [
+    "perf-doc-12",
+    "governing",
+    "architectural",
+    "Landscaping Standards",
+    "Front-yard standards and the approved drought-tolerant plant list.",
+    2,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-240 days'))",
+   "params": [
+    "perf-ver-027",
+    "perf-doc-12",
+    1,
+    "perf-file-027",
+    "landscaping-standards-v1.pdf",
+    "application/pdf",
+    297813,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-80 days'))",
+   "params": [
+    "perf-ver-028",
+    "perf-doc-12",
+    2,
+    "perf-file-028",
+    "landscaping-standards-v2.pdf",
+    "application/pdf",
+    305732,
+    "Artificial turf rules",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-360 days'), strftime('%Y-%m-%dT12:00:00Z','now','-100 days'))",
+   "params": [
+    "perf-doc-13",
+    "governing",
+    "architectural",
+    "Modification Request Form",
+    "Submit this to the committee before starting exterior work.",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-360 days'))",
+   "params": [
+    "perf-ver-029",
+    "perf-doc-13",
+    1,
+    "perf-file-029",
+    "modification-request-form-v1.pdf",
+    "application/pdf",
+    313651,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-100 days'))",
+   "params": [
+    "perf-ver-030",
+    "perf-doc-13",
+    2,
+    "perf-file-030",
+    "modification-request-form-v2.pdf",
+    "application/pdf",
+    321570,
+    "Fillable PDF",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-320 days'), strftime('%Y-%m-%dT12:00:00Z','now','-25 days'))",
+   "params": [
+    "perf-doc-14",
+    "governing",
+    "other",
+    "Annual Budget",
+    "The approved operating budget and reserve contribution.",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-320 days'))",
+   "params": [
+    "perf-ver-031",
+    "perf-doc-14",
+    1,
+    "perf-file-031",
+    "annual-budget-v1.pdf",
+    "application/pdf",
+    329489,
+    "Prior year",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-25 days'))",
+   "params": [
+    "perf-ver-032",
+    "perf-doc-14",
+    2,
+    "perf-file-032",
+    "annual-budget-v2.pdf",
+    "application/pdf",
+    337408,
+    "Current year, approved at the annual meeting",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-410 days'), strftime('%Y-%m-%dT12:00:00Z','now','-130 days'))",
+   "params": [
+    "perf-doc-15",
+    "governing",
+    "other",
+    "Reserve Study",
+    "Thirty-year funding plan for roofs, paving and the pool.",
+    2,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-410 days'))",
+   "params": [
+    "perf-ver-033",
+    "perf-doc-15",
+    1,
+    "perf-file-033",
+    "reserve-study-v1.pdf",
+    "application/pdf",
+    345327,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-130 days'))",
+   "params": [
+    "perf-ver-034",
+    "perf-doc-15",
+    2,
+    "perf-file-034",
+    "reserve-study-v2.pdf",
+    "application/pdf",
+    353246,
+    "Updated component list",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-90 days'), strftime('%Y-%m-%dT12:00:00Z','now','-90 days'))",
+   "params": [
+    "perf-doc-16",
+    "governing",
+    "other",
+    "Insurance Certificate",
+    "Master policy summary for lenders and owners.",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-90 days'))",
+   "params": [
+    "perf-ver-035",
+    "perf-doc-16",
+    1,
+    "perf-file-035",
+    "insurance-certificate-v1.pdf",
+    "application/pdf",
+    361165,
+    "Renewed policy",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-220 days'), strftime('%Y-%m-%dT12:00:00Z','now','-35 days'))",
+   "params": [
+    "perf-doc-17",
+    "governing",
+    "other",
+    "New Owner Welcome Packet",
+    "Everything a new neighbour needs in the first month.",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-220 days'))",
+   "params": [
+    "perf-ver-036",
+    "perf-doc-17",
+    1,
+    "perf-file-036",
+    "new-owner-welcome-packet-v1.pdf",
+    "application/pdf",
+    369084,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-35 days'))",
+   "params": [
+    "perf-ver-037",
+    "perf-doc-17",
+    2,
+    "perf-file-037",
+    "new-owner-welcome-packet-v2.pdf",
+    "application/pdf",
+    377003,
+    "Updated contacts and gate codes process",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-310 days'), strftime('%Y-%m-%dT12:00:00Z','now','-310 days'))",
+   "params": [
+    "perf-doc-18",
+    "governing",
+    "other",
+    "Management Company Contract",
+    "Scope of services and fee schedule.",
+    1,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-310 days'))",
+   "params": [
+    "perf-ver-038",
+    "perf-doc-18",
+    1,
+    "perf-file-038",
+    "management-company-contract-v1.pdf",
+    "application/pdf",
+    384922,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-1 days'), strftime('%Y-%m-%dT12:00:00Z','now','-1 days'))",
+   "params": [
+    "perf-doc-19",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Owners may speak during the open forum.",
+    "{{date:36}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-1 days'))",
+   "params": [
+    "perf-ver-039",
+    "perf-doc-19",
+    1,
+    "perf-file-039",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    392841,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-1 days'), strftime('%Y-%m-%dT12:00:00Z','now','-1 days'))",
+   "params": [
+    "perf-doc-20",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Open session at 7:00 pm in the clubhouse.",
+    "{{date:6}}",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-1 days'))",
+   "params": [
+    "perf-ver-040",
+    "perf-doc-20",
+    1,
+    "perf-file-040",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    400760,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-1 days'))",
+   "params": [
+    "perf-ver-041",
+    "perf-doc-20",
+    2,
+    "perf-file-041",
+    "regular-board-meeting-agenda-v2.pdf",
+    "application/pdf",
+    408679,
+    "Added landscaping bid review",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-7 days'), strftime('%Y-%m-%dT12:00:00Z','now','-7 days'))",
+   "params": [
+    "perf-doc-21",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Owners may speak during the open forum.",
+    "{{date:0}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-7 days'))",
+   "params": [
+    "perf-ver-042",
+    "perf-doc-21",
+    1,
+    "perf-file-042",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    416598,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-31 days'), strftime('%Y-%m-%dT12:00:00Z','now','-31 days'))",
+   "params": [
+    "perf-doc-22",
+    "meeting",
+    "agenda",
+    "Annual Members Meeting Agenda",
+    "Open session at 7:00 pm in the clubhouse.",
+    "{{date:-24}}",
+    1,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-31 days'))",
+   "params": [
+    "perf-ver-043",
+    "perf-doc-22",
+    1,
+    "perf-file-043",
+    "annual-members-meeting-agenda-v1.pdf",
+    "application/pdf",
+    424517,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-15 days'), strftime('%Y-%m-%dT12:00:00Z','now','-15 days'))",
+   "params": [
+    "perf-doc-23",
+    "meeting",
+    "minutes",
+    "Annual Members Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-24}}",
+    1,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-15 days'))",
+   "params": [
+    "perf-ver-044",
+    "perf-doc-23",
+    1,
+    "perf-file-044",
+    "annual-members-meeting-minutes-v1.pdf",
+    "application/pdf",
+    432436,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-62 days'), strftime('%Y-%m-%dT12:00:00Z','now','-62 days'))",
+   "params": [
+    "perf-doc-24",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Owners may speak during the open forum.",
+    "{{date:-55}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-62 days'))",
+   "params": [
+    "perf-ver-045",
+    "perf-doc-24",
+    1,
+    "perf-file-045",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    440355,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-46 days'), strftime('%Y-%m-%dT12:00:00Z','now','-18 days'))",
+   "params": [
+    "perf-doc-25",
+    "meeting",
+    "minutes",
+    "Regular Board Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-55}}",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-46 days'))",
+   "params": [
+    "perf-ver-046",
+    "perf-doc-25",
+    1,
+    "perf-file-046",
+    "regular-board-meeting-minutes-v1.pdf",
+    "application/pdf",
+    448274,
+    "Draft minutes",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-18 days'))",
+   "params": [
+    "perf-ver-047",
+    "perf-doc-25",
+    2,
+    "perf-file-047",
+    "regular-board-meeting-minutes-v2.pdf",
+    "application/pdf",
+    456193,
+    "Approved, with corrections to item 4",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-93 days'), strftime('%Y-%m-%dT12:00:00Z','now','-93 days'))",
+   "params": [
+    "perf-doc-26",
+    "meeting",
+    "agenda",
+    "Special Meeting: Roof Assessment Agenda",
+    "Open session at 7:00 pm in the clubhouse.",
+    "{{date:-86}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-93 days'))",
+   "params": [
+    "perf-ver-048",
+    "perf-doc-26",
+    1,
+    "perf-file-048",
+    "special-meeting-roof-assessment-agenda-v1.pdf",
+    "application/pdf",
+    464112,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-77 days'), strftime('%Y-%m-%dT12:00:00Z','now','-77 days'))",
+   "params": [
+    "perf-doc-27",
+    "meeting",
+    "minutes",
+    "Special Meeting: Roof Assessment Minutes",
+    "Approved at the following meeting.",
+    "{{date:-86}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-77 days'))",
+   "params": [
+    "perf-ver-049",
+    "perf-doc-27",
+    1,
+    "perf-file-049",
+    "special-meeting-roof-assessment-minutes-v1.pdf",
+    "application/pdf",
+    472031,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-123 days'), strftime('%Y-%m-%dT12:00:00Z','now','-119 days'))",
+   "params": [
+    "perf-doc-28",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Owners may speak during the open forum.",
+    "{{date:-116}}",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-123 days'))",
+   "params": [
+    "perf-ver-050",
+    "perf-doc-28",
+    1,
+    "perf-file-050",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    479950,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-119 days'))",
+   "params": [
+    "perf-ver-051",
+    "perf-doc-28",
+    2,
+    "perf-file-051",
+    "regular-board-meeting-agenda-v2.pdf",
+    "application/pdf",
+    487869,
+    "Added landscaping bid review",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-107 days'), strftime('%Y-%m-%dT12:00:00Z','now','-107 days'))",
+   "params": [
+    "perf-doc-29",
+    "meeting",
+    "minutes",
+    "Regular Board Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-116}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-107 days'))",
+   "params": [
+    "perf-ver-052",
+    "perf-doc-29",
+    1,
+    "perf-file-052",
+    "regular-board-meeting-minutes-v1.pdf",
+    "application/pdf",
+    495788,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-154 days'), strftime('%Y-%m-%dT12:00:00Z','now','-154 days'))",
+   "params": [
+    "perf-doc-30",
+    "meeting",
+    "agenda",
+    "Budget Workshop Agenda",
+    "Open session at 7:00 pm in the clubhouse.",
+    "{{date:-147}}",
+    1,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-154 days'))",
+   "params": [
+    "perf-ver-053",
+    "perf-doc-30",
+    1,
+    "perf-file-053",
+    "budget-workshop-agenda-v1.pdf",
+    "application/pdf",
+    503707,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-138 days'), strftime('%Y-%m-%dT12:00:00Z','now','-138 days'))",
+   "params": [
+    "perf-doc-31",
+    "meeting",
+    "minutes",
+    "Budget Workshop Minutes",
+    "Approved at the following meeting.",
+    "{{date:-147}}",
+    1,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-138 days'))",
+   "params": [
+    "perf-ver-054",
+    "perf-doc-31",
+    1,
+    "perf-file-054",
+    "budget-workshop-minutes-v1.pdf",
+    "application/pdf",
+    511626,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-184 days'), strftime('%Y-%m-%dT12:00:00Z','now','-184 days'))",
+   "params": [
+    "perf-doc-32",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Owners may speak during the open forum.",
+    "{{date:-177}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-184 days'))",
+   "params": [
+    "perf-ver-055",
+    "perf-doc-32",
+    1,
+    "perf-file-055",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    519545,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-168 days'), strftime('%Y-%m-%dT12:00:00Z','now','-140 days'))",
+   "params": [
+    "perf-doc-33",
+    "meeting",
+    "minutes",
+    "Regular Board Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-177}}",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-168 days'))",
+   "params": [
+    "perf-ver-056",
+    "perf-doc-33",
+    1,
+    "perf-file-056",
+    "regular-board-meeting-minutes-v1.pdf",
+    "application/pdf",
+    527464,
+    "Draft minutes",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-140 days'))",
+   "params": [
+    "perf-ver-057",
+    "perf-doc-33",
+    2,
+    "perf-file-057",
+    "regular-board-meeting-minutes-v2.pdf",
+    "application/pdf",
+    535383,
+    "Approved, with corrections to item 4",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-215 days'), strftime('%Y-%m-%dT12:00:00Z','now','-215 days'))",
+   "params": [
+    "perf-doc-34",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Open session at 7:00 pm in the clubhouse.",
+    "{{date:-208}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-215 days'))",
+   "params": [
+    "perf-ver-058",
+    "perf-doc-34",
+    1,
+    "perf-file-058",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    543302,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-199 days'), strftime('%Y-%m-%dT12:00:00Z','now','-199 days'))",
+   "params": [
+    "perf-doc-35",
+    "meeting",
+    "minutes",
+    "Regular Board Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-208}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-199 days'))",
+   "params": [
+    "perf-ver-059",
+    "perf-doc-35",
+    1,
+    "perf-file-059",
+    "regular-board-meeting-minutes-v1.pdf",
+    "application/pdf",
+    551221,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-245 days'), strftime('%Y-%m-%dT12:00:00Z','now','-245 days'))",
+   "params": [
+    "perf-doc-36",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Owners may speak during the open forum.",
+    "{{date:-238}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-245 days'))",
+   "params": [
+    "perf-ver-060",
+    "perf-doc-36",
+    1,
+    "perf-file-060",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    559140,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-229 days'), strftime('%Y-%m-%dT12:00:00Z','now','-229 days'))",
+   "params": [
+    "perf-doc-37",
+    "meeting",
+    "minutes",
+    "Regular Board Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-238}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-229 days'))",
+   "params": [
+    "perf-ver-061",
+    "perf-doc-37",
+    1,
+    "perf-file-061",
+    "regular-board-meeting-minutes-v1.pdf",
+    "application/pdf",
+    567059,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-276 days'), strftime('%Y-%m-%dT12:00:00Z','now','-272 days'))",
+   "params": [
+    "perf-doc-38",
+    "meeting",
+    "agenda",
+    "Annual Members Meeting Agenda",
+    "Open session at 7:00 pm in the clubhouse.",
+    "{{date:-269}}",
+    2,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-276 days'))",
+   "params": [
+    "perf-ver-062",
+    "perf-doc-38",
+    1,
+    "perf-file-062",
+    "annual-members-meeting-agenda-v1.pdf",
+    "application/pdf",
+    574978,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-272 days'))",
+   "params": [
+    "perf-ver-063",
+    "perf-doc-38",
+    2,
+    "perf-file-063",
+    "annual-members-meeting-agenda-v2.pdf",
+    "application/pdf",
+    582897,
+    "Added landscaping bid review",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-260 days'), strftime('%Y-%m-%dT12:00:00Z','now','-260 days'))",
+   "params": [
+    "perf-doc-39",
+    "meeting",
+    "minutes",
+    "Annual Members Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-269}}",
+    1,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-260 days'))",
+   "params": [
+    "perf-ver-064",
+    "perf-doc-39",
+    1,
+    "perf-file-064",
+    "annual-members-meeting-minutes-v1.pdf",
+    "application/pdf",
+    590816,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-306 days'), strftime('%Y-%m-%dT12:00:00Z','now','-306 days'))",
+   "params": [
+    "perf-doc-40",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Owners may speak during the open forum.",
+    "{{date:-299}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-306 days'))",
+   "params": [
+    "perf-ver-065",
+    "perf-doc-40",
+    1,
+    "perf-file-065",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    598735,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-290 days'), strftime('%Y-%m-%dT12:00:00Z','now','-262 days'))",
+   "params": [
+    "perf-doc-41",
+    "meeting",
+    "minutes",
+    "Regular Board Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-299}}",
+    2,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-290 days'))",
+   "params": [
+    "perf-ver-066",
+    "perf-doc-41",
+    1,
+    "perf-file-066",
+    "regular-board-meeting-minutes-v1.pdf",
+    "application/pdf",
+    606654,
+    "Draft minutes",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-262 days'))",
+   "params": [
+    "perf-ver-067",
+    "perf-doc-41",
+    2,
+    "perf-file-067",
+    "regular-board-meeting-minutes-v2.pdf",
+    "application/pdf",
+    614573,
+    "Approved, with corrections to item 4",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-337 days'), strftime('%Y-%m-%dT12:00:00Z','now','-337 days'))",
+   "params": [
+    "perf-doc-42",
+    "meeting",
+    "agenda",
+    "Special Meeting: Roof Assessment Agenda",
+    "Open session at 7:00 pm in the clubhouse.",
+    "{{date:-330}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-337 days'))",
+   "params": [
+    "perf-ver-068",
+    "perf-doc-42",
+    1,
+    "perf-file-068",
+    "special-meeting-roof-assessment-agenda-v1.pdf",
+    "application/pdf",
+    622492,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-321 days'), strftime('%Y-%m-%dT12:00:00Z','now','-321 days'))",
+   "params": [
+    "perf-doc-43",
+    "meeting",
+    "minutes",
+    "Special Meeting: Roof Assessment Minutes",
+    "Approved at the following meeting.",
+    "{{date:-330}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-321 days'))",
+   "params": [
+    "perf-ver-069",
+    "perf-doc-43",
+    1,
+    "perf-file-069",
+    "special-meeting-roof-assessment-minutes-v1.pdf",
+    "application/pdf",
+    630411,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-367 days'), strftime('%Y-%m-%dT12:00:00Z','now','-367 days'))",
+   "params": [
+    "perf-doc-44",
+    "meeting",
+    "agenda",
+    "Regular Board Meeting Agenda",
+    "Owners may speak during the open forum.",
+    "{{date:-360}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-367 days'))",
+   "params": [
+    "perf-ver-070",
+    "perf-doc-44",
+    1,
+    "perf-file-070",
+    "regular-board-meeting-agenda-v1.pdf",
+    "application/pdf",
+    638330,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-351 days'), strftime('%Y-%m-%dT12:00:00Z','now','-351 days'))",
+   "params": [
+    "perf-doc-45",
+    "meeting",
+    "minutes",
+    "Regular Board Meeting Minutes",
+    "Approved at the following meeting.",
+    "{{date:-360}}",
+    1,
+    "everyone",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-351 days'))",
+   "params": [
+    "perf-ver-071",
+    "perf-doc-45",
+    1,
+    "perf-file-071",
+    "regular-board-meeting-minutes-v1.pdf",
+    "application/pdf",
+    646249,
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-398 days'), strftime('%Y-%m-%dT12:00:00Z','now','-398 days'))",
+   "params": [
+    "perf-doc-46",
+    "meeting",
+    "agenda",
+    "Budget Workshop Agenda",
+    "Open session at 7:00 pm in the clubhouse.",
+    "{{date:-391}}",
+    1,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-398 days'))",
+   "params": [
+    "perf-ver-072",
+    "perf-doc-46",
+    1,
+    "perf-file-072",
+    "budget-workshop-agenda-v1.pdf",
+    "application/pdf",
+    654168,
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, visibility, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-382 days'), strftime('%Y-%m-%dT12:00:00Z','now','-382 days'))",
+   "params": [
+    "perf-doc-47",
+    "meeting",
+    "minutes",
+    "Budget Workshop Minutes",
+    "Approved at the following meeting.",
+    "{{date:-391}}",
+    1,
+    "everyone",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT12:00:00Z','now','-382 days'))",
+   "params": [
+    "perf-ver-073",
+    "perf-doc-47",
+    1,
+    "perf-file-073",
+    "budget-workshop-minutes-v1.pdf",
+    "application/pdf",
+    662087,
+    "{{partner}}"
+   ]
+  }
+ ]
+}
