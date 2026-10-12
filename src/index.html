@@ -639,7 +639,8 @@ window.openDetail = async function(id) {
   try {
     await loadVersions(id);
   } catch (err) {
-    hubAlert("This document's files could not be loaded.", { description: err.message });
+    console.error("[document-library] versions could not be loaded", err);
+    hubAlert("Couldn’t load this document’s files.");
     return;
   }
   if (selectedDoc?.id === id) render();
@@ -660,6 +661,15 @@ function openModal(html) {
   modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
   document.body.appendChild(modalEl);
 }
+// Wording written for the reader, which a failed write may show as it is.
+const userError = (message) => Object.assign(new Error(message), { forUser: true });
+// A file the hub would not take (too large, a type it does not store, no
+// storage left) is said in the hub's words; any other failure is not.
+function uploadFailText(err) {
+  const refused = err?.status === 507 || (err?.status >= 400 && err?.status < 500);
+  return refused && err.message ? err.message : "Couldn’t upload the document — try again.";
+}
+
 function closeModal() { modalEl?.remove(); modalEl = null; pendingFile = null; uploading = false; }
 window.closeModal = closeModal;
 
@@ -785,7 +795,7 @@ window.submitDocument = async function(category, existingId) {
         [title, activeCategory, docType, desc, meetingDate, now, existingId]
       );
       // The row policy narrows a write it will not allow to zero rows.
-      if (changed === 0) throw new Error("This document can no longer be changed. It may have been removed.");
+      if (changed === 0) throw userError("This document can no longer be changed. It may have been removed.");
     } catch (err) {
       // Put back what the hub holds, then say the edit did not land. When the
       // hub cannot be read either, put back what was here before the edit.
@@ -793,7 +803,8 @@ window.submitDocument = async function(category, existingId) {
       if (!reread && previous) documents = documents.map(x => x.id === existingId ? previous : x);
       if (selectedDoc?.id === existingId) selectedDoc = documents.find(x => x.id === existingId) ?? selectedDoc;
       render();
-      hubAlert("This document could not be changed.", { description: err.message });
+      if (!err?.forUser) console.error("[document-library] edit failed", err);
+      hubAlert("This document could not be changed.", err?.forUser ? { description: err.message } : undefined);
     }
     return;
   }
@@ -830,7 +841,8 @@ window.submitDocument = async function(category, existingId) {
     await loadDocuments();
     render();
   } catch (err) {
-    if (errorEl) errorEl.textContent = err.message ?? "Upload failed.";
+    console.error("[document-library] upload failed", err);
+    if (errorEl) errorEl.textContent = uploadFailText(err);
     if (submitBtn) submitBtn.disabled = false;
   }
 };
@@ -898,7 +910,8 @@ window.submitVersion = async function(documentId) {
     if (selectedDoc?.id === documentId) await loadVersions(documentId);
     render();
   } catch (err) {
-    if (errorEl) errorEl.textContent = err.message ?? "Upload failed.";
+    console.error("[document-library] upload failed", err);
+    if (errorEl) errorEl.textContent = uploadFailText(err);
     if (submitBtn) submitBtn.disabled = false;
   }
 };
@@ -916,12 +929,13 @@ window.deleteDocument = async function(documentId) {
   try {
     const removed = await db(`DELETE FROM app_document_library__documents WHERE id=?`, [documentId]);
     // The row policy narrows a delete it will not allow to zero rows.
-    if (removed.changed === 0) throw new Error("This document could not be deleted. It may already have been removed.");
+    if (removed.changed === 0) throw userError("This document could not be deleted. It may already have been removed.");
   } catch (err) {
     await loadDocuments().catch(() => {});
     if (selectedDoc?.id === documentId) await loadVersions(documentId).catch(() => {});
     render();
-    hubAlert("This document could not be deleted.", { description: err.message });
+    console.error("[document-library] delete failed", err);
+    hubAlert("This document could not be deleted.", err?.forUser ? { description: err.message } : undefined);
     return;
   }
   documents = documents.filter(x => x.id !== documentId);
@@ -954,7 +968,8 @@ window.saveBoardGroup = async function(groupId) {
   } catch (e) {
     settings.board_group_id = prev;
     render();
-    hubAlert(e.message ?? "Save failed");
+    console.error("[document-library] board group not saved", e);
+    hubAlert("Couldn’t save the Board group — try again.");
   }
 };
 
