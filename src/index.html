@@ -159,6 +159,8 @@
     .empty   { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 0.9rem; }
     .empty-icon { margin-bottom: 10px; }
     .loading { text-align: center; padding: 40px; color: var(--muted); }
+    .load-error { margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--hub-tint-danger, #fee2e2); color: var(--hub-tint-danger-fg, #b91c1c); font-size: 0.9rem; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+    .load-error-retry { font: inherit; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 8px; padding: 4px 10px; cursor: pointer; }
     .search-row { margin-bottom: 12px; }
     .search-input {
       width: 100%; border: 1.5px solid var(--border-mid, var(--border, #d1d5db));
@@ -254,6 +256,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 let modalEl      = null;
 let pendingFile  = null;        // File staged in the create/version modal before submit
 let uploading    = false;
+let loadFailed   = false;       // the first read of the documents failed and none has succeeded since
+let contextFailed = false;      // the first read of the members, groups or board setting failed
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -309,12 +313,15 @@ async function loadContext() {
     groups = [];
     return;
   }
-  try {
-    const res = await fetch(`${CONTEXT}?keys=family.members,family.groups`);
-    const data = await res.json();
-    members = data["family.members"] ?? [];
-    groups  = data["family.groups"]  ?? [];
-  } catch { members = []; groups = []; }
+  // Throws when the context cannot be read: with no groups nobody is on the
+  // board, which is a different thing from not knowing who is.
+  const res = await fetch(`${CONTEXT}?keys=family.members,family.groups`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data || typeof data !== "object" || data.error) throw new Error("Couldn’t reach the hub. Try again.");
+  // A 200 can still name a key the hub failed to read: that is a failed load too.
+  if (Array.isArray(data.$errors) && ["family.members", "family.groups"].some((k) => data.$errors.includes(k))) throw new Error("Couldn’t reach the hub. Try again.");
+  members = data["family.members"] ?? [];
+  groups  = data["family.groups"]  ?? [];
   memberMap = new Map(members.map(m => [m.id, m]));
 }
 
@@ -322,12 +329,12 @@ async function loadSettings() {
   if (!DB) return;
   // `settings` is the `app_config` table: everyone may read the board_group_id
   // pointer, but it is writable ONLY through the admin-gated /api/admin-config
-  // endpoint (app-originated SQL writes are rejected). Swallow read errors and
-  // default so init still completes for everyone.
+  // endpoint (app-originated SQL writes are rejected). A read that fails
+  // throws: "no board configured" is only said of a read that answered.
   const r = await db(
     `SELECT value AS board_group_id FROM app_document_library__settings WHERE key = 'board_group_id' LIMIT 1`
-  ).catch(() => null);
-  settings = r?.rows?.[0] ?? { board_group_id: "" };
+  );
+  settings = r.rows?.[0] ?? { board_group_id: "" };
 }
 
 async function loadDocuments() {
@@ -336,6 +343,7 @@ async function loadDocuments() {
     `SELECT * FROM app_document_library__documents ORDER BY title`
   );
   documents = r.rows;
+  loadFailed = false;
 }
 
 async function loadVersions(documentId) {
@@ -364,13 +372,36 @@ function render() {
   document.getElementById("root").innerHTML = `
     ${renderHeader(board)}
     ${view !== "settings" ? renderTabs(board) : ""}
-    ${view === "governing" ? renderGoverning(board)
+    ${contextFailed || (loadFailed && view !== "settings") ? renderLoadError()
+    : view === "governing" ? renderGoverning(board)
     : view === "meetings"  ? renderMeetings(board)
     : view === "detail"    ? renderDetail(board)
     : view === "settings"  ? renderSettings(board)
     : ""}
   `;
 }
+
+// Shown in place of the lists while the documents are unread, so an empty
+// list is never presented as "there are no documents".
+function renderLoadError() {
+  return `<div class="load-error" data-testid="load-error" role="alert"><span>Couldn’t load the documents.</span> <button type="button" class="load-error-retry" data-testid="load-retry" onclick="retryLoad()">Try again</button></div>`;
+}
+
+// The first load, and what "Try again" re-runs. The members, groups and board
+// setting decide who may manage documents, so one of them unread is a failed
+// load on every view, the settings view included.
+async function firstLoad() {
+  contextFailed = false;
+  await Promise.all([
+    Promise.all([loadContext(), loadSettings()]).catch(() => { contextFailed = true; }),
+    loadDocuments().catch(() => { loadFailed = true; }),
+  ]);
+}
+
+window.retryLoad = async function() {
+  await firstLoad();
+  render();
+};
 
 function renderHeader(board) {
   return `<header>
@@ -501,7 +532,7 @@ function renderDetail(board) {
   const current = versions.find(v => v.version_number === d.current_version) ?? versions[0];
 
   return `
-    <button class="back-btn" onclick="setView('${d.category === "meeting" ? "meetings" : "governing"}')">← Back</button>
+    <button class="back-btn" data-testid="doc-back" onclick="setView('${d.category === "meeting" ? "meetings" : "governing"}')">← Back</button>
     <div class="card" data-testid="doc-detail" data-doc-id="${esc(d.id)}">
       <div class="detail-header">
         <div class="detail-icon">${docCategoryIcon(d)}</div>
@@ -532,8 +563,8 @@ function renderDetail(board) {
       ${board ? `
         <div class="detail-actions" data-testid="doc-board-actions">
           <button class="btn btn-primary btn-sm" onclick="openVersionModal('${esc(d.id)}')">Upload New Version</button>
-          <button class="btn btn-ghost btn-sm" onclick="openDocumentModal('${esc(d.category)}', '${esc(d.id)}')">Edit</button>
-          <button class="btn btn-ghost btn-sm" onclick="deleteDocument('${esc(d.id)}')">Delete</button>
+          <button class="btn btn-ghost btn-sm" data-testid="doc-edit" onclick="openDocumentModal('${esc(d.category)}', '${esc(d.id)}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" data-testid="doc-delete" onclick="deleteDocument('${esc(d.id)}')">Delete</button>
         </div>
       ` : ""}
     </div>
@@ -605,7 +636,12 @@ window.openDetail = async function(id) {
   versions = [];
   view = "detail";
   render();
-  await loadVersions(id);
+  try {
+    await loadVersions(id);
+  } catch (err) {
+    hubAlert("This document's files could not be loaded.", { description: err.message });
+    return;
+  }
   if (selectedDoc?.id === id) render();
 };
 
@@ -676,7 +712,7 @@ window.openDocumentModal = function(category, existingId) {
     <h3>${d ? `Edit ${esc(d.title)}` : category === "meeting" ? "Add Meeting Record" : "Add Document"}</h3>
     <div class="form-group">
       <label>Title</label>
-      <input type="text" id="dm-title" value="${esc(d?.title ?? "")}" placeholder="${activeCategory === "meeting" ? "Board Meeting — May 2026" : "Covenants, Conditions & Restrictions"}" maxlength="120" />
+      <input type="text" id="dm-title" data-testid="field-title" value="${esc(d?.title ?? "")}" placeholder="${activeCategory === "meeting" ? "Board Meeting — May 2026" : "Covenants, Conditions & Restrictions"}" maxlength="120" />
     </div>
     <div class="form-row">
       ${d ? `
@@ -707,7 +743,7 @@ window.openDocumentModal = function(category, existingId) {
     <div id="dm-error" class="error-msg"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitDocument('${esc(category)}', '${esc(existingId ?? "")}')">${d ? "Save Changes" : "Add"}</button>
+      <button class="btn btn-primary" data-testid="save-document" onclick="submitDocument('${esc(category)}', '${esc(existingId ?? "")}')">${d ? "Save Changes" : "Add"}</button>
     </div>
   `);
 };
@@ -736,16 +772,29 @@ window.submitDocument = async function(category, existingId) {
   const now = new Date().toISOString();
 
   if (existingId) {
-    const updated = { ...documents.find(x => x.id === existingId), title, category: activeCategory, doc_type: docType, description: desc, meeting_date: meetingDate, updated_at: now };
+    const previous = documents.find(x => x.id === existingId);
+    const updated = { ...previous, title, category: activeCategory, doc_type: docType, description: desc, meeting_date: meetingDate, updated_at: now };
     const idx = documents.findIndex(x => x.id === existingId);
     if (idx !== -1) documents[idx] = updated;
     if (selectedDoc?.id === existingId) selectedDoc = updated;
     closeModal();
     render();
-    await db(
-      `UPDATE app_document_library__documents SET title=?, category=?, doc_type=?, description=?, meeting_date=?, updated_at=? WHERE id=?`,
-      [title, activeCategory, docType, desc, meetingDate, now, existingId]
-    ).catch(() => loadDocuments().then(render));
+    try {
+      const { changed } = await db(
+        `UPDATE app_document_library__documents SET title=?, category=?, doc_type=?, description=?, meeting_date=?, updated_at=? WHERE id=?`,
+        [title, activeCategory, docType, desc, meetingDate, now, existingId]
+      );
+      // The row policy narrows a write it will not allow to zero rows.
+      if (changed === 0) throw new Error("This document can no longer be changed. It may have been removed.");
+    } catch (err) {
+      // Put back what the hub holds, then say the edit did not land. When the
+      // hub cannot be read either, put back what was here before the edit.
+      const reread = await loadDocuments().then(() => true, () => false);
+      if (!reread && previous) documents = documents.map(x => x.id === existingId ? previous : x);
+      if (selectedDoc?.id === existingId) selectedDoc = documents.find(x => x.id === existingId) ?? selectedDoc;
+      render();
+      hubAlert("This document could not be changed.", { description: err.message });
+    }
     return;
   }
 
@@ -861,17 +910,20 @@ window.deleteDocument = async function(documentId) {
   if (!d) return;
   if (!await hubConfirm({ message: `Delete "${d.title}"?`, description: "All versions and their files will be permanently removed.", confirmLabel: "Delete", destructive: true })) return;
 
-  // Each version's file goes with its row: `manifest.delete_file_columns` has
-  // the hub read `file_id` off the doomed version rows and queue the R2 reclaim
-  // in the same transaction. The `versions.map(... files.delete ...)` this
-  // replaces fired against a list this tab happened to have loaded, and did so
-  // concurrently with the DELETE that removed the rows naming those files — so
-  // an interrupted request leaked bytes nothing could name, and a version
-  // another member added since was never in the list to begin with.
-  await Promise.all([
-    db(`DELETE FROM app_document_library__document_versions WHERE document_id=?`, [documentId]),
-    db(`DELETE FROM app_document_library__documents WHERE id=?`, [documentId]),
-  ]);
+  // One statement. The manifest's `delete_cascades` removes the document's
+  // versions and reclaims their files in the same transaction, whoever uploaded
+  // them, so nothing of the document goes unless the row itself does.
+  try {
+    const removed = await db(`DELETE FROM app_document_library__documents WHERE id=?`, [documentId]);
+    // The row policy narrows a delete it will not allow to zero rows.
+    if (removed.changed === 0) throw new Error("This document could not be deleted. It may already have been removed.");
+  } catch (err) {
+    await loadDocuments().catch(() => {});
+    if (selectedDoc?.id === documentId) await loadVersions(documentId).catch(() => {});
+    render();
+    hubAlert("This document could not be deleted.", { description: err.message });
+    return;
+  }
   documents = documents.filter(x => x.id !== documentId);
   view = d.category === "meeting" ? "meetings" : "governing";
   selectedDoc = null;
@@ -999,7 +1051,9 @@ function handleDeepLink() {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 (async () => {
-  await Promise.all([loadContext(), loadSettings(), loadDocuments()]);
+  // A failed read of the documents still draws the page, under a banner that
+  // stays until a read succeeds.
+  await firstLoad();
   handleDeepLink();
   render();
 })();

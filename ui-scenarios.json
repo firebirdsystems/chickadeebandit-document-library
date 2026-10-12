@@ -109,6 +109,573 @@
           "selector": "[data-testid=\"doc-board-actions\"]"
         }
       ]
+    },
+    {
+      "name": "a failed first read says so instead of showing an empty library, and Try again brings the documents back",
+      "members": {
+        "viewer": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedGroup",
+          "group": "board",
+          "name": "Board of Directors",
+          "members": [
+            "viewer"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)",
+          "params": [
+            "{{group:board}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, 'governing', ?, ?, ?, 1, 'everyone', ?, datetime('now'), datetime('now'))",
+          "params": [
+            "ui-doc",
+            "bylaws",
+            "Association bylaws",
+            "Adopted at the 2019 annual meeting.",
+            "{{viewer}}"
+          ]
+        },
+        {
+          "as": "viewer",
+          "action": "fault",
+          "mode": "down"
+        },
+        {
+          "as": "viewer",
+          "action": "open"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"load-error\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"load-error\"]",
+          "text": "Couldn’t load the documents."
+        },
+        {
+          "as": "viewer",
+          "action": "expectNoText",
+          "text": "No governing documents yet."
+        },
+        {
+          "as": "viewer",
+          "action": "expectCount",
+          "selector": "[data-testid=\"doc-row\"]",
+          "count": 0
+        },
+        {
+          "as": "viewer",
+          "action": "fault",
+          "mode": "none"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"load-retry\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]",
+          "text": "Association bylaws"
+        },
+        {
+          "as": "viewer",
+          "action": "expectCount",
+          "selector": "[data-testid=\"load-error\"]",
+          "count": 0
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"add-document\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectNoText",
+          "text": "No board configured yet."
+        },
+        {
+          "as": "viewer",
+          "action": "reload"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"add-document\"]"
+        }
+      ]
+    },
+    {
+      "name": "an edit the hub did not apply is taken back off the screen, and the same edit lands once the hub accepts it",
+      "members": {
+        "viewer": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedGroup",
+          "group": "board",
+          "name": "Board of Directors",
+          "members": [
+            "viewer"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)",
+          "params": [
+            "{{group:board}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, 'governing', ?, ?, ?, 1, 'everyone', ?, datetime('now'), datetime('now'))",
+          "params": [
+            "ui-doc",
+            "bylaws",
+            "Association bylaws",
+            "Adopted at the 2019 annual meeting.",
+            "{{viewer}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES ('ui-ver', 'ui-doc', 1, 'ui-file', ?, 'application/pdf', 1024, ?, ?, datetime('now'))",
+          "params": [
+            "bylaws-2019.pdf",
+            "First upload.",
+            "{{viewer}}"
+          ]
+        },
+        {
+          "as": "viewer",
+          "action": "open"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-edit\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-edit\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "fill",
+          "selector": "[data-testid=\"field-title\"]",
+          "value": "Bylaws as amended"
+        },
+        {
+          "as": "viewer",
+          "action": "fault",
+          "mode": "noop"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"save-document\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "dialog",
+          "answer": "accept",
+          "text": "This document can no longer be changed. It may have been removed."
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]",
+          "text": "Association bylaws"
+        },
+        {
+          "as": "viewer",
+          "action": "expectNoText",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]",
+          "text": "Bylaws as amended"
+        },
+        {
+          "as": "viewer",
+          "action": "fault",
+          "mode": "none"
+        },
+        {
+          "as": "viewer",
+          "action": "reload"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]",
+          "text": "Association bylaws"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-edit\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-edit\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "fill",
+          "selector": "[data-testid=\"field-title\"]",
+          "value": "Bylaws as amended"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"save-document\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]",
+          "text": "Bylaws as amended"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-back\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]",
+          "text": "bylaws-2019.pdf"
+        },
+        {
+          "as": "viewer",
+          "action": "reload"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]",
+          "text": "Bylaws as amended"
+        },
+        {
+          "as": "viewer",
+          "action": "expectNoText",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]",
+          "text": "Association bylaws"
+        }
+      ]
+    },
+    {
+      "name": "an edit made while the hub is unreachable is reported and the old title is put back on screen",
+      "members": {
+        "viewer": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedGroup",
+          "group": "board",
+          "name": "Board of Directors",
+          "members": [
+            "viewer"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)",
+          "params": [
+            "{{group:board}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, 'governing', ?, ?, ?, 1, 'everyone', ?, datetime('now'), datetime('now'))",
+          "params": [
+            "ui-doc",
+            "bylaws",
+            "Association bylaws",
+            "Adopted at the 2019 annual meeting.",
+            "{{viewer}}"
+          ]
+        },
+        {
+          "as": "viewer",
+          "action": "open"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-edit\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-edit\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "fill",
+          "selector": "[data-testid=\"field-title\"]",
+          "value": "Bylaws as amended"
+        },
+        {
+          "as": "viewer",
+          "action": "fault",
+          "mode": "down"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"save-document\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "dialog",
+          "answer": "accept",
+          "text": "This document could not be changed."
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]",
+          "text": "Association bylaws"
+        },
+        {
+          "as": "viewer",
+          "action": "expectNoText",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]",
+          "text": "Bylaws as amended"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-back\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]",
+          "text": "Association bylaws"
+        },
+        {
+          "as": "viewer",
+          "action": "fault",
+          "mode": "none"
+        },
+        {
+          "as": "viewer",
+          "action": "reload"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]",
+          "text": "Association bylaws"
+        }
+      ]
+    },
+    {
+      "name": "a delete that fails is reported and leaves the document listed, and the same delete removes it for good once the hub answers",
+      "members": {
+        "viewer": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedGroup",
+          "group": "board",
+          "name": "Board of Directors",
+          "members": [
+            "viewer"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)",
+          "params": [
+            "{{group:board}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, current_version, visibility, created_by, created_at, updated_at) VALUES (?, 'governing', ?, ?, ?, 1, 'everyone', ?, datetime('now'), datetime('now'))",
+          "params": [
+            "ui-doc",
+            "bylaws",
+            "Association bylaws",
+            "Adopted at the 2019 annual meeting.",
+            "{{viewer}}"
+          ]
+        },
+        {
+          "as": "viewer",
+          "action": "open"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-delete\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "fault",
+          "mode": "down"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-delete\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "dialog",
+          "answer": "accept",
+          "text": "Delete \"Association bylaws\"?"
+        },
+        {
+          "as": "viewer",
+          "action": "dialog",
+          "answer": "accept",
+          "text": "This document could not be deleted."
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]",
+          "text": "Association bylaws"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-back\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "fault",
+          "mode": "none"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-row\"][data-doc-id=\"ui-doc\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"doc-delete\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"doc-delete\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "dialog",
+          "answer": "accept",
+          "text": "Delete \"Association bylaws\"?"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "text": "No governing documents yet."
+        },
+        {
+          "as": "viewer",
+          "action": "expectCount",
+          "selector": "[data-testid=\"doc-row\"]",
+          "count": 0
+        },
+        {
+          "as": "viewer",
+          "action": "reload"
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"add-document\"]"
+        },
+        {
+          "as": "viewer",
+          "action": "expectText",
+          "text": "No governing documents yet."
+        },
+        {
+          "as": "viewer",
+          "action": "expectCount",
+          "selector": "[data-testid=\"doc-row\"]",
+          "count": 0
+        }
+      ]
     }
   ]
 }

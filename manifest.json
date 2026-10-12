@@ -118,6 +118,11 @@
       "file_id"
     ]
   },
+  "delete_cascades": {
+    "documents": [
+      { "table": "document_versions", "foreign_key": "document_id", "file_id_column": "file_id" }
+    ]
+  },
   "admin_config": {
     "settings_table": "settings",
     "keys": [
