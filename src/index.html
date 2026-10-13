@@ -750,9 +750,9 @@ window.openDocumentModal = function(category, existingId) {
       <textarea id="dm-desc" maxlength="500" placeholder="What is this document, and when does it apply?">${esc(d?.description ?? "")}</textarea>
     </div>
     ${d ? "" : filePickHtml()}
-    <div id="dm-error" class="error-msg"></div>
+    <div id="dm-error" class="error-msg" data-testid="document-error"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-ghost" data-testid="cancel-document" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" data-testid="save-document" onclick="submitDocument('${esc(category)}', '${esc(existingId ?? "")}')">${d ? "Save Changes" : "Add"}</button>
     </div>
   `);
@@ -782,13 +782,14 @@ window.submitDocument = async function(category, existingId) {
   const now = new Date().toISOString();
 
   if (existingId) {
-    const previous = documents.find(x => x.id === existingId);
-    const updated = { ...previous, title, category: activeCategory, doc_type: docType, description: desc, meeting_date: meetingDate, updated_at: now };
-    const idx = documents.findIndex(x => x.id === existingId);
-    if (idx !== -1) documents[idx] = updated;
-    if (selectedDoc?.id === existingId) selectedDoc = updated;
-    closeModal();
-    render();
+    const fields = { title, category: activeCategory, doc_type: docType, description: desc, meeting_date: meetingDate, updated_at: now };
+    // The form stays open, and the page behind it undrawn, until the hub has
+    // the edit: a save that fails says so in the form and leaves what was
+    // typed in place to send again.
+    const formEl = modalEl;
+    const saveBtn = formEl?.querySelector(".btn-primary");
+    if (saveBtn) saveBtn.disabled = true;
+    if (errorEl) errorEl.textContent = "";
     try {
       const { changed } = await db(
         `UPDATE app_document_library__documents SET title=?, category=?, doc_type=?, description=?, meeting_date=?, updated_at=? WHERE id=?`,
@@ -797,15 +798,34 @@ window.submitDocument = async function(category, existingId) {
       // The row policy narrows a write it will not allow to zero rows.
       if (changed === 0) throw userError("This document can no longer be changed. It may have been removed.");
     } catch (err) {
-      // Put back what the hub holds, then say the edit did not land. When the
-      // hub cannot be read either, put back what was here before the edit.
-      const reread = await loadDocuments().then(() => true, () => false);
-      if (!reread && previous) documents = documents.map(x => x.id === existingId ? previous : x);
+      // Ready to send again now, not after the re-read below.
+      if (saveBtn) saveBtn.disabled = false;
+      if (err?.forUser) {
+        // Sending it again cannot help: close the form.
+        if (modalEl === formEl) closeModal();
+      } else {
+        console.error("[document-library] edit failed", err);
+        const line = "Couldn’t save the document — try again.";
+        // The form may have been cancelled while the save was out.
+        if (modalEl === formEl && errorEl) errorEl.textContent = line;
+        else hubAlert(line);
+      }
+      // Show what the hub holds: nothing was drawn ahead of the answer, but an
+      // edit whose answer was lost may have landed.
+      await loadDocuments().catch(() => {});
       if (selectedDoc?.id === existingId) selectedDoc = documents.find(x => x.id === existingId) ?? selectedDoc;
       render();
-      if (!err?.forUser) console.error("[document-library] edit failed", err);
-      hubAlert("This document could not be changed.", err?.forUser ? { description: err.message } : undefined);
+      if (err?.forUser) hubAlert("This document could not be changed.", { description: err.message });
+      return;
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
     }
+    // Onto the row as it is now, which may have changed while the save was out.
+    const idx = documents.findIndex(x => x.id === existingId);
+    if (idx !== -1) documents[idx] = { ...documents[idx], ...fields };
+    if (selectedDoc?.id === existingId) selectedDoc = idx !== -1 ? documents[idx] : { ...selectedDoc, ...fields };
+    if (modalEl === formEl) closeModal();
+    render();
     return;
   }
 

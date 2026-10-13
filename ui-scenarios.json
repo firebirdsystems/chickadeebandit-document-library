@@ -412,7 +412,7 @@
       ]
     },
     {
-      "name": "an edit made while the hub is unreachable is reported and the old title is put back on screen",
+      "name": "an edit made while the hub is unreachable is reported in the form, which stays open, and the old title stays on screen",
       "members": {
         "viewer": "adult"
       },
@@ -485,9 +485,14 @@
         },
         {
           "as": "viewer",
-          "action": "dialog",
-          "answer": "accept",
-          "text": "This document could not be changed."
+          "action": "expectText",
+          "selector": "[data-testid=\"document-error\"]",
+          "text": "Couldn’t save the document — try again."
+        },
+        {
+          "as": "viewer",
+          "action": "expectVisible",
+          "selector": "[data-testid=\"field-title\"]"
         },
         {
           "as": "viewer",
@@ -500,6 +505,11 @@
           "action": "expectNoText",
           "selector": "[data-testid=\"doc-detail\"][data-doc-id=\"ui-doc\"]",
           "text": "Bylaws as amended"
+        },
+        {
+          "as": "viewer",
+          "action": "click",
+          "selector": "[data-testid=\"cancel-document\"]"
         },
         {
           "as": "viewer",
