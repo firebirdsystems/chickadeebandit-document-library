@@ -139,6 +139,42 @@
       ]
     },
     {
+      "name": "a new document and its first version are stored in one batch, and a new version moves the document's current version in one batch",
+      "members": { "board": "adult", "member": "adult" },
+      "steps": [
+        { "action": "seedGroup", "group": "board", "name": "Board", "members": ["board"] },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_document_library__settings (key, value) VALUES ('board_group_id', ?)",
+          "params": ["{{group:board}}"]
+        },
+        {
+          "action": "batch",
+          "as": "board",
+          "statements": [
+            { "sql": "INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)", "params": ["doc1", "governing", "bylaws", "Bylaws", "", null, "{{board}}", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z"] },
+            { "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, 1, ?, ?, ?, ?, '', ?, ?)", "params": ["ver1", "doc1", "file-1", "bylaws.pdf", "application/pdf", 1024, "{{board}}", "2026-01-01T00:00:00Z"] }
+          ],
+          "expect": { "status": 200, "changed": [1, 1] }
+        },
+        {
+          "action": "batch",
+          "as": "board",
+          "statements": [
+            { "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", "params": ["ver2", "doc1", 2, "file-2", "bylaws-v2.pdf", "application/pdf", 2048, "Amended", "{{board}}", "2026-01-02T00:00:00Z"] },
+            { "sql": "UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=?", "params": [2, "2026-01-02T00:00:00Z", "doc1"], "requireChanges": true }
+          ],
+          "expect": { "status": 200, "changed": [1, 1] }
+        },
+        {
+          "action": "db",
+          "as": "member",
+          "sql": "SELECT d.id, d.current_version, v.version_number FROM app_document_library__documents d JOIN app_document_library__document_versions v ON v.document_id = d.id ORDER BY v.version_number",
+          "expect": { "status": 200, "rowCount": 2, "rowsContain": [{ "id": "doc1", "current_version": 2, "version_number": 1 }, { "id": "doc1", "current_version": 2, "version_number": 2 }] }
+        }
+      ]
+    },
+    {
       "name": "a board-group member edits and removes a document another board member added; a plain adult outside the group changes nothing",
       "members": { "author": "adult", "board": "adult", "member": "adult" },
       "steps": [

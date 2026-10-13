@@ -666,7 +666,8 @@ const userError = (message) => Object.assign(new Error(message), { forUser: true
 // A file the hub would not take (too large, a type it does not store, no
 // storage left) is said in the hub's words; any other failure is not.
 function uploadFailText(err) {
-  const refused = err?.status === 507 || (err?.status >= 400 && err?.status < 500);
+  // 409 is the hub's stale-claim answer to a batch, not wording for a reader.
+  const refused = err?.status === 507 || (err?.status >= 400 && err?.status < 500 && err.status !== 409);
   return refused && err.message ? err.message : "Couldn’t upload the document — try again.";
 }
 
@@ -812,8 +813,16 @@ window.submitDocument = async function(category, existingId) {
       }
       // Show what the hub holds: nothing was drawn ahead of the answer, but an
       // edit whose answer was lost may have landed.
-      await loadDocuments().catch(() => {});
-      if (selectedDoc?.id === existingId) selectedDoc = documents.find(x => x.id === existingId) ?? selectedDoc;
+      const reread = await loadDocuments().then(() => true, () => false);
+      // A refusal also means who is on the Board may have changed: re-read it,
+      // so the page stops offering what the hub will not take.
+      if (err?.forUser) await Promise.all([loadContext(), loadSettings()]).catch(() => {});
+      if (selectedDoc?.id === existingId) {
+        const row = documents.find(x => x.id === existingId);
+        if (row) selectedDoc = row;
+        // Gone from a list that was read: leave its detail view for the list.
+        else if (reread) { view = selectedDoc.category === "meeting" ? "meetings" : "governing"; selectedDoc = null; }
+      }
       render();
       if (err?.forUser) hubAlert("This document could not be changed.", { description: err.message });
       return;
@@ -841,16 +850,16 @@ window.submitDocument = async function(category, existingId) {
     });
     const docId = crypto.randomUUID();
     const verId = crypto.randomUUID();
-    await db(
-      `INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, created_by, created_at, updated_at)
+    // One batch: the document and its first version are stored together or
+    // not at all, so sending the form again cannot leave a second document.
+    await db.batch([
+      { sql: `INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, created_by, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
-      [docId, category, docType, title, desc, meetingDate, ME?.id ?? "", now, now]
-    );
-    await db(
-      `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
+        params: [docId, category, docType, title, desc, meetingDate, ME?.id ?? "", now, now] },
+      { sql: `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
        VALUES (?, ?, 1, ?, ?, ?, ?, '', ?, ?)`,
-      [verId, docId, result.id, pendingFile.name, pendingFile.type, pendingFile.size, ME?.id ?? "", now]
-    );
+        params: [verId, docId, result.id, pendingFile.name, pendingFile.type, pendingFile.size, ME?.id ?? "", now] },
+    ]);
     await publishEvent("document.published", docId, {
       title,
       category,
@@ -858,7 +867,12 @@ window.submitDocument = async function(category, existingId) {
       meeting_date: meetingDate || null,
     });
     closeModal();
-    await loadDocuments();
+    // The document is stored: a re-read that fails is not a failed upload, so
+    // the list gets the row as it was sent.
+    await loadDocuments().catch((err) => {
+      console.error("[document-library] documents could not be re-read", err);
+      documents = [...documents, { id: docId, category, doc_type: docType, title, description: desc, meeting_date: meetingDate, current_version: 1, visibility: "everyone", created_by: ME?.id ?? "", created_at: now, updated_at: now }];
+    });
     render();
   } catch (err) {
     console.error("[document-library] upload failed", err);
@@ -906,16 +920,16 @@ window.submitVersion = async function(documentId) {
     });
     const now = new Date().toISOString();
     const versionNumber = nextVersionNumber(d.current_version);
-    const verId = crypto.randomUUID();
-    await db(
-      `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
+    const stored = { id: crypto.randomUUID(), document_id: documentId, version_number: versionNumber, file_id: result.id, filename: pendingFile.name, mime_type: pendingFile.type, size_bytes: pendingFile.size, change_note: note, uploaded_by: ME?.id ?? "", uploaded_at: now };
+    // One batch: the version row and the document's pointer to it are stored
+    // together or not at all (a pointer the hub will not move answers 409).
+    await db.batch([
+      { sql: `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [verId, documentId, versionNumber, result.id, pendingFile.name, pendingFile.type, pendingFile.size, note, ME?.id ?? "", now]
-    );
-    await db(
-      `UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=?`,
-      [versionNumber, now, documentId]
-    );
+        params: [stored.id, documentId, versionNumber, stored.file_id, stored.filename, stored.mime_type, stored.size_bytes, note, stored.uploaded_by, now] },
+      { sql: `UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=?`,
+        params: [versionNumber, now, documentId], requireChanges: true },
+    ]);
     // Only a NEW version is a revision — editing a document's title or meeting
     // date leaves the governing text unchanged and publishes nothing.
     await publishEvent("document.revised", documentId, {
@@ -927,7 +941,12 @@ window.submitVersion = async function(documentId) {
     closeModal();
     d.current_version = versionNumber;
     d.updated_at = now;
-    if (selectedDoc?.id === documentId) await loadVersions(documentId);
+    // The version is stored: a re-read that fails is not a failed upload, so
+    // the history gets the row as it was sent.
+    if (selectedDoc?.id === documentId) await loadVersions(documentId).catch((err) => {
+      console.error("[document-library] versions could not be re-read", err);
+      if (selectedDoc?.id === documentId) versions = [stored, ...versions];
+    });
     render();
   } catch (err) {
     console.error("[document-library] upload failed", err);
