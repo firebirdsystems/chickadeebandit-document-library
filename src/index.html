@@ -185,7 +185,7 @@ import {
 import {
   isBoard, GOVERNING_DOC_TYPES, MEETING_DOC_TYPES, docTypesFor, docTypeLabel, nextVersionNumber,
   isImage, isPreviewableImage, isPdf, fileGlyph, formatBytes, accept, groupGoverningDocs, sortMeetingDocs, searchableFields,
-  canShareDocument,
+  canShareDocument, outcomeUnknown,
 } from "./logic.js";
 import { createShareUi, createOverlayView } from "./share.js";
 
@@ -255,6 +255,9 @@ let selectedDoc  = null;
 let searchQ = "";       // in-app search (see logic.js searchableFields)
 let modalEl      = null;
 let pendingFile  = null;        // File staged in the create/version modal before submit
+// The upload made for the new-document form that is open, kept while its
+// document is unsaved: sending the form again reuses it. { form, file, result }
+let pendingUpload = null;
 let uploading    = false;
 let loadFailed   = false;       // the first read of the documents failed and none has succeeded since
 let contextFailed = false;      // the first read of the members, groups or board setting failed
@@ -843,50 +846,93 @@ window.submitDocument = async function(category, existingId) {
   }
 
   // New document — upload the first version, then create the document + version rows
-  const submitBtn = modalEl?.querySelector(".btn-primary");
+  const formEl = modalEl;
+  const submitBtn = formEl?.querySelector(".btn-primary");
   if (submitBtn) submitBtn.disabled = true;
+  // The ids are the form's, minted on its first Add and sent on every retry: a
+  // try whose answer was lost may have stored the document, and a second press
+  // must find it rather than store another naming the same file.
+  const docId = formEl ? (formEl.dataset.docId ||= crypto.randomUUID()) : crypto.randomUUID();
+  const verId = formEl ? (formEl.dataset.verId ||= crypto.randomUUID()) : crypto.randomUUID();
+  const file = pendingFile;
+  let result = null;
   try {
-    const result = await files.upload(pendingFile, e => {
+    // The file uploaded by an earlier try of this form is reused while it is
+    // still the one picked. Another file: that upload is no longer reused, and
+    // is not deleted — a document whose answer was lost may name it.
+    if (pendingUpload && (pendingUpload.form !== formEl || pendingUpload.file !== file)) pendingUpload = null;
+    result = pendingUpload?.result ?? await files.upload(file, e => {
       if (e.lengthComputable) {
         const pct = Math.round((e.loaded / e.total) * 100);
-        showUploadProgress(pct, `Uploading ${pendingFile.name}… ${pct}%`);
+        showUploadProgress(pct, `Uploading ${file.name}… ${pct}%`);
       }
     });
-    const docId = crypto.randomUUID();
-    const verId = crypto.randomUUID();
+    pendingUpload = { form: formEl, file, result };
+  } catch (err) {
+    console.error("[document-library] upload failed", err);
+    if (errorEl) errorEl.textContent = uploadFailText(err);
+    if (submitBtn) submitBtn.disabled = false;
+    return;
+  }
+  let note = "", stored = null;
+  try {
     // One batch: the document and its first version are stored together or
-    // not at all, so sending the form again cannot leave a second document.
+    // not at all.
     await db.batch([
       { sql: `INSERT INTO app_document_library__documents (id, category, doc_type, title, description, meeting_date, current_version, created_by, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
         params: [docId, category, docType, title, desc, meetingDate, ME?.id ?? "", now, now] },
       { sql: `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
        VALUES (?, ?, 1, ?, ?, ?, ?, '', ?, ?)`,
-        params: [verId, docId, result.id, pendingFile.name, pendingFile.type, pendingFile.size, ME?.id ?? "", now] },
-    ]).catch((err) => {
-      // Refused without being stored: the file just uploaded has no row.
-      if (err?.status === 403 || err?.status === 507) files.delete(result.id).catch(() => {});
-      throw err;
-    });
-    await publishEvent("document.published", docId, {
-      title,
-      category,
-      doc_type: docType,
-      meeting_date: meetingDate || null,
-    });
-    closeModal();
-    // The document is stored: a re-read that fails is not a failed upload, so
-    // the list gets the row as it was sent.
-    await loadDocuments().catch((err) => {
-      console.error("[document-library] documents could not be re-read", err);
-      documents = [...documents, { id: docId, category, doc_type: docType, title, description: desc, meeting_date: meetingDate, current_version: 1, visibility: "everyone", created_by: ME?.id ?? "", created_at: now, updated_at: now }];
-    });
-    render();
+        params: [verId, docId, result.id, file.name, file.type, file.size, ME?.id ?? "", now] },
+    ]);
   } catch (err) {
-    console.error("[document-library] upload failed", err);
-    if (errorEl) errorEl.textContent = uploadFailText(err);
-    if (submitBtn) submitBtn.disabled = false;
+    console.error("[document-library] create failed", err);
+    // Unknown outcome: read the document back by the pinned ids. Found means
+    // an earlier try landed and its success path never ran: it runs now, once.
+    if (outcomeUnknown(err)) {
+      try {
+        stored = (await db(
+          `SELECT d.doc_type, d.title, d.description, d.meeting_date, v.file_id
+             FROM app_document_library__documents d
+             JOIN app_document_library__document_versions v ON v.document_id = d.id
+            WHERE d.id = ? AND v.id = ?`, [docId, verId])).rows?.[0] ?? null;
+      } catch (readErr) { console.error("[document-library] re-read failed", readErr); }
+    }
+    if (!stored) {
+      // Refused without being stored: the file just uploaded has no row. With
+      // the answer lost it is kept, with the ids, for the next Add.
+      if (!outcomeUnknown(err)) { files.delete(result.id).catch(() => {}); pendingUpload = null; }
+      if (modalEl === formEl && errorEl) errorEl.textContent = uploadFailText(err);
+      if (submitBtn) submitBtn.disabled = false;
+      return;
+    }
+    // Stored as first entered: anything changed since is not in it, and a file
+    // picked since is named by nothing.
+    if (stored.file_id !== result.id) files.delete(result.id).catch(() => {});
+    const typed = { doc_type: docType, title, description: desc, meeting_date: meetingDate, file_id: result.id };
+    if (Object.keys(typed).some((k) => String(stored[k] ?? "") !== String(typed[k] ?? ""))) {
+      note = "Saved as first entered — check it and update what changed.";
+    }
   }
+  pendingUpload = null;
+  // What is stored: an earlier try's values when that is the one that landed.
+  const sent = stored ?? { title, doc_type: docType, description: desc, meeting_date: meetingDate };
+  await publishEvent("document.published", docId, {
+    title: sent.title,
+    category,
+    doc_type: sent.doc_type,
+    meeting_date: sent.meeting_date || null,
+  });
+  if (modalEl === formEl) closeModal();
+  // The document is stored: a re-read that fails is not a failed upload, so
+  // the list gets the row as it was sent.
+  await loadDocuments().catch((err) => {
+    console.error("[document-library] documents could not be re-read", err);
+    if (!documents.some((x) => x.id === docId)) documents = [...documents, { id: docId, category, doc_type: sent.doc_type, title: sent.title, description: sent.description, meeting_date: sent.meeting_date, current_version: 1, visibility: "everyone", created_by: ME?.id ?? "", created_at: now, updated_at: now }];
+  });
+  try { render(); } catch (err) { console.error("[document-library] render failed", err); }
+  if (note) hubAlert(note);
 };
 
 // ── Modal: Upload new version ─────────────────────────────────────────────────
