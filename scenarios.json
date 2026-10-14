@@ -162,7 +162,7 @@
           "as": "board",
           "statements": [
             { "sql": "INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", "params": ["ver2", "doc1", 2, "file-2", "bylaws-v2.pdf", "application/pdf", 2048, "Amended", "{{board}}", "2026-01-02T00:00:00Z"] },
-            { "sql": "UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=?", "params": [2, "2026-01-02T00:00:00Z", "doc1"], "requireChanges": true }
+            { "sql": "UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=? AND current_version=?", "params": [2, "2026-01-02T00:00:00Z", "doc1", 1], "requireChanges": true }
           ],
           "expect": { "status": 200, "changed": [1, 1] }
         },

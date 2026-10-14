@@ -666,8 +666,9 @@ const userError = (message) => Object.assign(new Error(message), { forUser: true
 // A file the hub would not take (too large, a type it does not store, no
 // storage left) is said in the hub's words; any other failure is not.
 function uploadFailText(err) {
-  // 409 is the hub's stale-claim answer to a batch, not wording for a reader.
-  const refused = err?.status === 507 || (err?.status >= 400 && err?.status < 500 && err.status !== 409);
+  // 409 is the hub's stale-claim answer to a batch and 403 its row-policy
+  // refusal: neither is wording for a reader.
+  const refused = err?.status === 507 || (err?.status >= 400 && err?.status < 500 && err.status !== 409 && err.status !== 403);
   return refused && err.message ? err.message : "Couldn’t upload the document — try again.";
 }
 
@@ -859,7 +860,11 @@ window.submitDocument = async function(category, existingId) {
       { sql: `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
        VALUES (?, ?, 1, ?, ?, ?, ?, '', ?, ?)`,
         params: [verId, docId, result.id, pendingFile.name, pendingFile.type, pendingFile.size, ME?.id ?? "", now] },
-    ]);
+    ]).catch((err) => {
+      // Refused without being stored: the file just uploaded has no row.
+      if (err?.status === 403 || err?.status === 507) files.delete(result.id).catch(() => {});
+      throw err;
+    });
     await publishEvent("document.published", docId, {
       title,
       category,
@@ -927,9 +932,15 @@ window.submitVersion = async function(documentId) {
       { sql: `INSERT INTO app_document_library__document_versions (id, document_id, version_number, file_id, filename, mime_type, size_bytes, change_note, uploaded_by, uploaded_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         params: [stored.id, documentId, versionNumber, stored.file_id, stored.filename, stored.mime_type, stored.size_bytes, note, stored.uploaded_by, now] },
-      { sql: `UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=?`,
-        params: [versionNumber, now, documentId], requireChanges: true },
-    ]);
+      // Guarded on the version this number was counted from: of two uploads
+      // sent at once, the second is refused rather than given the same number.
+      { sql: `UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=? AND current_version=?`,
+        params: [versionNumber, now, documentId, d.current_version], requireChanges: true },
+    ]).catch((err) => {
+      // Refused without being stored: the file just uploaded has no row.
+      if (err?.status === 403 || err?.status === 507) files.delete(result.id).catch(() => {});
+      throw err;
+    });
     // Only a NEW version is a revision — editing a document's title or meeting
     // date leaves the governing text unchanged and publishes nothing.
     await publishEvent("document.revised", documentId, {
@@ -951,11 +962,24 @@ window.submitVersion = async function(documentId) {
   } catch (err) {
     console.error("[document-library] upload failed", err);
     if (errorEl) errorEl.textContent = uploadFailText(err);
+    // Another version may have landed first: re-read, so sending this again
+    // counts from the stored number.
+    if (err?.status === 409) {
+      const reread = await loadDocuments().then(() => true, () => false);
+      const row = documents.find(x => x.id === documentId);
+      // Gone from a list that was read: there is nothing to send this to.
+      if (!row && reread && modalEl?.contains(submitBtn)) { closeModal(); hubAlert("Couldn’t upload the document — try again."); }
+      if (selectedDoc?.id === documentId) {
+        if (row) { selectedDoc = row; await loadVersions(documentId).catch(() => {}); }
+        else if (reread) { view = selectedDoc.category === "meeting" ? "meetings" : "governing"; selectedDoc = null; }
+      }
+      render();
+    }
     if (submitBtn) submitBtn.disabled = false;
   }
 };
 
-// ── Delete ────────────────────────────────────────────────────────────────────
+// ── Delete────────────────────────────────────────────────────────────────────
 
 window.deleteDocument = async function(documentId) {
   const d = documents.find(x => x.id === documentId);
@@ -970,8 +994,13 @@ window.deleteDocument = async function(documentId) {
     // The row policy narrows a delete it will not allow to zero rows.
     if (removed.changed === 0) throw userError("This document could not be deleted. It may already have been removed.");
   } catch (err) {
-    await loadDocuments().catch(() => {});
-    if (selectedDoc?.id === documentId) await loadVersions(documentId).catch(() => {});
+    const reread = await loadDocuments().then(() => true, () => false);
+    if (selectedDoc?.id === documentId) {
+      const row = documents.find(x => x.id === documentId);
+      if (row) { selectedDoc = row; await loadVersions(documentId).catch(() => {}); }
+      // Gone from a list that was read: leave its detail view for the list.
+      else if (reread) { view = d.category === "meeting" ? "meetings" : "governing"; selectedDoc = null; }
+    }
     render();
     console.error("[document-library] delete failed", err);
     hubAlert("This document could not be deleted.", err?.forUser ? { description: err.message } : undefined);
