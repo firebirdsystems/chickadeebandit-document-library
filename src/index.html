@@ -663,13 +663,16 @@ function openModal(html) {
 }
 // Wording written for the reader, which a failed write may show as it is.
 const userError = (message) => Object.assign(new Error(message), { forUser: true });
-// A file the hub would not take (too large, a type it does not store, no
-// storage left) is said in the hub's words; any other failure is not.
+// A file the hub would not take gets a line of its own, in this app's words;
+// the hub's text never reaches the screen. 409 (another version landed first)
+// is the generic line: sending again counts from the re-read number.
 function uploadFailText(err) {
-  // 409 is the hub's stale-claim answer to a batch and 403 its row-policy
-  // refusal: neither is wording for a reader.
-  const refused = err?.status === 507 || (err?.status >= 400 && err?.status < 500 && err.status !== 409 && err.status !== 403);
-  return refused && err.message ? err.message : "Couldn’t upload the document — try again.";
+  if (err?.status === 413) return "That file is too large.";
+  if (err?.status === 415) return "That kind of file can’t be uploaded.";
+  if (err?.status === 403) return "You don’t have permission to upload the document.";
+  if (err?.status === 429) return "Too many tries — wait a minute and try again.";
+  if (err?.status === 507) return "The household’s storage is full — free up space first.";
+  return "Couldn’t upload the document — try again.";
 }
 
 function closeModal() { modalEl?.remove(); modalEl = null; pendingFile = null; uploading = false; }
@@ -937,8 +940,10 @@ window.submitVersion = async function(documentId) {
       { sql: `UPDATE app_document_library__documents SET current_version=?, updated_at=? WHERE id=? AND current_version=?`,
         params: [versionNumber, now, documentId, d.current_version], requireChanges: true },
     ]).catch((err) => {
-      // Refused without being stored: the file just uploaded has no row.
-      if (err?.status === 403 || err?.status === 507) files.delete(result.id).catch(() => {});
+      // Refused without being stored: the file just uploaded has no row. A
+      // batch's 409 (another version landed first) rolled the whole batch back
+      // too, and sending again uploads the file anew.
+      if (err?.status === 403 || err?.status === 507 || err?.status === 409) files.delete(result.id).catch(() => {});
       throw err;
     });
     // Only a NEW version is a revision — editing a document's title or meeting
@@ -968,7 +973,7 @@ window.submitVersion = async function(documentId) {
       const reread = await loadDocuments().then(() => true, () => false);
       const row = documents.find(x => x.id === documentId);
       // Gone from a list that was read: there is nothing to send this to.
-      if (!row && reread && modalEl?.contains(submitBtn)) { closeModal(); hubAlert("Couldn’t upload the document — try again."); }
+      if (!row && reread && modalEl?.contains(submitBtn)) { closeModal(); hubAlert("This document has been removed."); }
       if (selectedDoc?.id === documentId) {
         if (row) { selectedDoc = row; await loadVersions(documentId).catch(() => {}); }
         else if (reread) { view = selectedDoc.category === "meeting" ? "meetings" : "governing"; selectedDoc = null; }
